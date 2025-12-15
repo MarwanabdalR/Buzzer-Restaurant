@@ -1,5 +1,7 @@
 // prisma/seed.js
-import { PrismaClient } from '../src/generated/prisma/index.js';
+// Prisma v6-compatible seed script using @prisma/client (no adapter required).
+import 'dotenv/config';
+import { PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
@@ -15,7 +17,7 @@ async function main() {
     await prisma.user.deleteMany();
     console.log('🧹 Database cleaned.');
   } catch (err) {
-    console.warn('⚠️ Skipping clean step (likely tables empty / not created yet):', err.message);
+    console.warn('⚠️ Skipping clean step:', err.message);
   }
 
   // 2) Create a test user
@@ -39,7 +41,7 @@ async function main() {
   });
   console.log('✅ Category created:', category);
 
-  // 4) Create a test product in that category
+  // 4) Create a test product
   const product = await prisma.product.create({
     data: {
       name: 'Test Product',
@@ -51,7 +53,7 @@ async function main() {
   });
   console.log('✅ Product created:', product);
 
-  // 5) Create a simple order with one item for the user
+  // 5) Create an order with one item
   const order = await prisma.order.create({
     data: {
       userId: user.id,
@@ -74,7 +76,7 @@ async function main() {
   });
   console.log('✅ Order created with item:', order);
 
-  // 6) Read back data to verify
+  // 6) Read back data
   const users = await prisma.user.findMany();
   console.log('📂 All users in DB:', users);
 
