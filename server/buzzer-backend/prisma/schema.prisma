@@ -5,10 +5,68 @@
 // Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
 
 generator client {
-  provider = "prisma-client"
-  output   = "../generated/prisma"
+  provider = "prisma-client-js"
+  output   = "../src/generated/prisma"
 }
 
 datasource db {
-  provider = "postgresql"
+  provider = "mysql"
+  // For Prisma 7+, the connection URL is configured in prisma.config.ts, not here.
+}
+
+model User {
+  id           Int      @id @default(autoincrement())
+  fullName     String
+  mobileNumber String   @unique
+  firebaseUid  String   @unique
+
+  // Optional extra fields for flexibility
+  type         String?
+  email        String?  @unique
+  password     String?
+  image        String?
+
+  createdAt    DateTime @default(now())
+  orders       Order[]
+}
+
+model Category {
+  id       Int       @id @default(autoincrement())
+  name     String
+  image    String?
+  products Product[]
+}
+
+model Product {
+  id          Int         @id @default(autoincrement())
+  name        String
+  description String?     @db.Text
+  price       Decimal     @db.Decimal(10, 2)
+  image       String?
+  rate        Float?
+
+  categoryId  Int
+  category    Category    @relation(fields: [categoryId], references: [id])
+  orderItems  OrderItem[]
+}
+
+model Order {
+  id         Int         @id @default(autoincrement())
+  userId     Int
+  user       User        @relation(fields: [userId], references: [id])
+  totalPrice Decimal     @db.Decimal(10, 2)
+  status     String      @default("PENDING")
+  createdAt  DateTime    @default(now())
+  items      OrderItem[]
+  location   String?
+}
+
+model OrderItem {
+  id        Int     @id @default(autoincrement())
+  orderId   Int
+  order     Order   @relation(fields: [orderId], references: [id])
+  productId Int
+  product   Product @relation(fields: [productId], references: [id])
+  quantity  Int
+  price     Decimal @db.Decimal(10, 2)
 }
