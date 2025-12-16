@@ -2,6 +2,8 @@ import "dotenv/config";
 import express from "express";
 import categoryRoutes from "./routes/categoryRoutes.js";
 import productRoutes from "./routes/productRoutes.js";
+import authRoutes from "./routes/authRoutes.js";
+import authenticate from './middlewares/authMiddleware.js';
 
 const app = express();
 
@@ -9,6 +11,7 @@ app.use(express.json());
 
 app.use("/api/categories", categoryRoutes);
 app.use("/api/products", productRoutes);
+app.use("/api/auth", authRoutes);
 
 // Basic error handler to return JSON instead of HTML
 // eslint-disable-next-line no-unused-vars
