@@ -211,6 +211,89 @@ export const getMyOrders = asyncHandler(async (req, res) => {
 });
 
 /**
+ * Get All Orders Controller (Admin Only)
+ * GET /api/orders/all
+ * 
+ * Flow:
+ * 1. Get user from database (already verified as admin by middleware)
+ * 2. Fetch all orders from all users
+ * 3. Include items, product details, and user information
+ * 4. Sort by createdAt descending (newest first)
+ * 5. Optional: Filter by status via query parameter
+ * 
+ * @param {Object} req - Express request object (req.user available from authenticateAndLoadUser + requireAdmin)
+ * @param {Object} res - Express response object
+ */
+export const getAllOrders = asyncHandler(async (req, res) => {
+  // Step 1: Get user from database (already loaded by middleware)
+  const user = await prisma.user.findUnique({
+    where: { firebaseUid: req.user.uid },
+  });
+
+  if (!user) {
+    return res.status(404).json({
+      success: false,
+      message: 'User not found. Please register first.',
+    });
+  }
+
+  // Verify admin (should already be checked by middleware, but double-check)
+  if (user.type !== 'admin') {
+    return res.status(403).json({
+      success: false,
+      message: 'Access denied. Admin privileges required.',
+    });
+  }
+
+  // Step 2: Build where clause (optional status filter)
+  const where = {};
+  if (req.query.status) {
+    const validStatuses = ['PENDING', 'COMPLETED', 'CANCELLED'];
+    if (validStatuses.includes(req.query.status.toUpperCase())) {
+      where.status = req.query.status.toUpperCase();
+    }
+  }
+
+  // Step 3: Fetch all orders with full details
+  const orders = await prisma.order.findMany({
+    where,
+    include: {
+      items: {
+        include: {
+          product: {
+            select: {
+              id: true,
+              name: true,
+              image: true,
+              price: true,
+            },
+          },
+        },
+      },
+      user: {
+        select: {
+          id: true,
+          fullName: true,
+          mobileNumber: true,
+          email: true,
+        },
+      },
+    },
+    // Step 4: Sort by createdAt descending (newest first)
+    orderBy: {
+      createdAt: 'desc',
+    },
+  });
+
+  return res.status(200).json({
+    success: true,
+    message: 'All orders retrieved successfully',
+    data: orders,
+    count: orders.length,
+  });
+});
+
+/**
  * Update Order Status Controller
  * PATCH /api/orders/:id
  * 
