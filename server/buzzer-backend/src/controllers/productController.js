@@ -132,7 +132,6 @@ export const deleteProduct = asyncHandler(async (req, res) => {
     await prisma.product.delete({ where: { id } });
     return res.status(200).json({ message: 'Product deleted' });
   } catch (err) {
-    // Handle FK constraints (e.g., order items referencing this product)
     if (err.code === 'P2003') {
       return res.status(400).json({
         message: 'Cannot delete product because it is referenced by other records (e.g., order items).',

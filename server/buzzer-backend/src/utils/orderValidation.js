@@ -1,9 +1,5 @@
 import Joi from 'joi';
 
-/**
- * Order Item Schema
- * Validates individual items in the order
- */
 const orderItemSchema = Joi.object({
   productId: Joi.alternatives()
     .try(
@@ -19,7 +15,6 @@ const orderItemSchema = Joi.object({
       'string.pattern.base': 'productId must be a numeric string',
     })
     .custom((value) => {
-      // Convert string to number if needed
       return typeof value === 'string' ? parseInt(value, 10) : value;
     }),
 
@@ -37,10 +32,6 @@ const orderItemSchema = Joi.object({
     }),
 });
 
-/**
- * Create Order Schema
- * Validates the order creation request
- */
 export const createOrderSchema = Joi.object({
   items: Joi.array()
     .items(orderItemSchema)
@@ -62,10 +53,6 @@ export const createOrderSchema = Joi.object({
     }),
 });
 
-/**
- * Update Order Status Schema
- * Validates order status updates (for admin)
- */
 export const updateOrderStatusSchema = Joi.object({
   status: Joi.string()
     .valid('PENDING', 'COMPLETED', 'CANCELLED')
@@ -75,4 +62,3 @@ export const updateOrderStatusSchema = Joi.object({
       'any.required': 'status is required',
     }),
 });
-

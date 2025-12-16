@@ -5,31 +5,10 @@ import { registerSchema, loginSchema, updateProfileSchema } from '../utils/authV
 
 const prisma = new PrismaClient();
 
-/**
- * Validation helper function
- * @param {Joi.Schema} schema - Joi validation schema
- * @param {Object} payload - Data to validate
- * @returns {Promise<Object>} Validated data
- */
 const validate = async (schema, payload) =>
   schema.validateAsync(payload, { abortEarly: false });
 
-/**
- * Register Controller
- * POST /api/auth/register
- * 
- * Flow:
- * 1. Validate request body (fullName, mobileNumber, idToken)
- * 2. Verify Firebase ID token
- * 3. Check if user already exists (by firebaseUid OR mobileNumber)
- * 4. Create new user if not exists
- * 5. Return 201 Created with user data
- * 
- * @param {Object} req - Express request object
- * @param {Object} res - Express response object
- */
 export const register = asyncHandler(async (req, res) => {
-  // Step 1: Validate request body
   let data;
   try {
     data = await validate(registerSchema, req.body);
@@ -41,12 +20,10 @@ export const register = asyncHandler(async (req, res) => {
     });
   }
 
-  // Step 2: Verify Firebase ID token
   let decoded;
   try {
     decoded = await admin.auth().verifyIdToken(data.idToken);
   } catch (err) {
-    // Handle different Firebase token errors
     if (err.code === 'auth/id-token-expired') {
       return res.status(401).json({
         success: false,
@@ -67,7 +44,6 @@ export const register = asyncHandler(async (req, res) => {
 
   const firebaseUid = decoded.uid;
 
-  // Step 3: Check if user already exists (by firebaseUid OR mobileNumber)
   const existing = await prisma.user.findFirst({
     where: {
       OR: [
@@ -84,7 +60,6 @@ export const register = asyncHandler(async (req, res) => {
     });
   }
 
-  // Step 4: Create new user (default type is "user")
   const user = await prisma.user.create({
     data: {
       fullName: data.fullName,
@@ -93,11 +68,10 @@ export const register = asyncHandler(async (req, res) => {
       email: null,
       password: null,
       image: null,
-      type: 'user', // Default type is "user"
+      type: 'user',
     },
   });
 
-  // Step 5: Return success response
   return res.status(201).json({
     success: true,
     message: 'User registered successfully',
@@ -105,24 +79,7 @@ export const register = asyncHandler(async (req, res) => {
   });
 });
 
-/**
- * Login Controller
- * POST /api/auth/login
- * 
- * Flow:
- * 1. Validate request body (idToken)
- * 2. Verify Firebase ID token
- * 3. Extract Firebase UID
- * 4. Find user in database by firebaseUid
- * 5. Return user data if found, 404 if not found
- * 
- * Note: Frontend uses 404 response to redirect user to registration page
- * 
- * @param {Object} req - Express request object
- * @param {Object} res - Express response object
- */
 export const login = asyncHandler(async (req, res) => {
-  // Step 1: Validate request body
   let data;
   try {
     data = await validate(loginSchema, req.body);
@@ -134,12 +91,10 @@ export const login = asyncHandler(async (req, res) => {
     });
   }
 
-  // Step 2: Verify Firebase ID token
   let decoded;
   try {
     decoded = await admin.auth().verifyIdToken(data.idToken);
   } catch (err) {
-    // Handle different Firebase token errors
     if (err.code === 'auth/id-token-expired') {
       return res.status(401).json({
         success: false,
@@ -160,13 +115,10 @@ export const login = asyncHandler(async (req, res) => {
 
   const firebaseUid = decoded.uid;
 
-  // Step 3: Find user in database
   const user = await prisma.user.findUnique({
     where: { firebaseUid },
   });
 
-  // Step 4: Handle user not found scenario
-  // Frontend uses 404 to redirect to registration page
   if (!user) {
     return res.status(404).json({
       success: false,
@@ -174,7 +126,6 @@ export const login = asyncHandler(async (req, res) => {
     });
   }
 
-  // Step 5: Return success response with user data
   return res.status(200).json({
     success: true,
     message: 'Login successful',
@@ -182,22 +133,7 @@ export const login = asyncHandler(async (req, res) => {
   });
 });
 
-/**
- * Update Profile Controller
- * PATCH /api/auth/profile
- * 
- * Flow:
- * 1. Validate request body (fullName, email, image, mobileNumber - all optional)
- * 2. Get user from database using req.user.uid (firebaseUid from authMiddleware)
- * 3. Check if mobileNumber or email already exists (if being updated)
- * 4. Update user profile with provided fields
- * 5. Return updated user data
- * 
- * @param {Object} req - Express request object (req.user.uid available from authMiddleware)
- * @param {Object} res - Express response object
- */
 export const updateProfile = asyncHandler(async (req, res) => {
-  // Step 1: Validate request body
   let data;
   try {
     data = await validate(updateProfileSchema, req.body);
@@ -209,7 +145,6 @@ export const updateProfile = asyncHandler(async (req, res) => {
     });
   }
 
-  // Step 2: Get user from database
   const user = await prisma.user.findUnique({
     where: { firebaseUid: req.user.uid },
   });
@@ -221,7 +156,6 @@ export const updateProfile = asyncHandler(async (req, res) => {
     });
   }
 
-  // Step 3: Check for conflicts if mobileNumber or email is being updated
   if (data.mobileNumber && data.mobileNumber !== user.mobileNumber) {
     const existingMobile = await prisma.user.findUnique({
       where: { mobileNumber: data.mobileNumber },
@@ -246,8 +180,6 @@ export const updateProfile = asyncHandler(async (req, res) => {
     }
   }
 
-  // Step 4: Prepare update data (only include fields that are provided)
-  // Security: Prevent users from changing their own type (only admins can do this manually in DB)
   if (data.type !== undefined && data.type !== user.type) {
     return res.status(403).json({
       success: false,
@@ -260,19 +192,15 @@ export const updateProfile = asyncHandler(async (req, res) => {
   if (data.email !== undefined) updateData.email = data.email || null;
   if (data.image !== undefined) updateData.image = data.image || null;
   if (data.mobileNumber !== undefined) updateData.mobileNumber = data.mobileNumber;
-  // Type field is intentionally excluded - users cannot change their own type
 
-  // Step 5: Update user profile
   const updatedUser = await prisma.user.update({
     where: { firebaseUid: req.user.uid },
     data: updateData,
   });
 
-  // Step 6: Return success response
   return res.status(200).json({
     success: true,
     message: 'Profile updated successfully',
     data: updatedUser,
   });
 });
-

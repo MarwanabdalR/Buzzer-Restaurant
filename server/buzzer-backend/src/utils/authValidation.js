@@ -1,16 +1,7 @@
 import Joi from 'joi';
 
-/**
- * Phone number validation pattern
- * Supports international format: +[country code][number]
- * Example: +201234567890, +16505551234
- */
 const phonePattern = /^\+?[0-9]{8,15}$/;
 
-/**
- * Register Schema Validation
- * Validates fullName, mobileNumber, and idToken for user registration
- */
 export const registerSchema = Joi.object({
   fullName: Joi.string()
     .trim()
@@ -43,10 +34,6 @@ export const registerSchema = Joi.object({
     }),
 });
 
-/**
- * Login Schema Validation
- * Validates idToken for user authentication
- */
 export const loginSchema = Joi.object({
   idToken: Joi.string()
     .trim()
@@ -57,10 +44,6 @@ export const loginSchema = Joi.object({
     }),
 });
 
-/**
- * Update Profile Schema Validation
- * Validates fields for updating user profile
- */
 export const updateProfileSchema = Joi.object({
   fullName: Joi.string()
     .trim()
@@ -107,4 +90,3 @@ export const updateProfileSchema = Joi.object({
 }).min(1).messages({
   'object.min': 'At least one field must be provided for update',
 });
-

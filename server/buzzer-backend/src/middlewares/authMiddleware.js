@@ -4,15 +4,6 @@ import { PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
-/**
- * Authentication Middleware
- * Verifies Firebase ID token from Authorization: Bearer <token>
- * Optionally fetches user from database and attaches to req.user
- * 
- * @param {Object} req - Express request object
- * @param {Object} res - Express response object
- * @param {Function} next - Express next function
- */
 export const authenticate = asyncHandler(async (req, res, next) => {
   const authHeader = req.headers.authorization || '';
   const parts = authHeader.split(' ');
@@ -39,15 +30,6 @@ export const authenticate = asyncHandler(async (req, res, next) => {
   }
 });
 
-/**
- * Authenticate and Load User Middleware
- * Verifies token AND fetches user from database
- * Attaches full user object to req.user for role checking
- * 
- * @param {Object} req - Express request object
- * @param {Object} res - Express response object
- * @param {Function} next - Express next function
- */
 export const authenticateAndLoadUser = asyncHandler(async (req, res, next) => {
   const authHeader = req.headers.authorization || '';
   const parts = authHeader.split(' ');
@@ -69,7 +51,6 @@ export const authenticateAndLoadUser = asyncHandler(async (req, res, next) => {
     });
   }
 
-  // Fetch user from database
   const user = await prisma.user.findUnique({
     where: { firebaseUid: decoded.uid },
     select: {
@@ -90,7 +71,6 @@ export const authenticateAndLoadUser = asyncHandler(async (req, res, next) => {
     });
   }
 
-  // Attach user info to request
   req.user = {
     uid: decoded.uid,
     id: user.id,
@@ -106,4 +86,3 @@ export const authenticateAndLoadUser = asyncHandler(async (req, res, next) => {
 });
 
 export default authenticate;
-

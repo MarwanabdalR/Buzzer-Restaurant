@@ -4,34 +4,10 @@ import { createOrderSchema, updateOrderStatusSchema } from '../utils/orderValida
 
 const prisma = new PrismaClient();
 
-/**
- * Validation helper function
- * @param {Joi.Schema} schema - Joi validation schema
- * @param {Object} payload - Data to validate
- * @returns {Promise<Object>} Validated data
- */
 const validate = async (schema, payload) =>
   schema.validateAsync(payload, { abortEarly: false });
 
-/**
- * Create Order Controller
- * POST /api/orders
- * 
- * Flow:
- * 1. Validate request body (items array, optional location)
- * 2. Get user from database using req.user.uid (firebaseUid)
- * 3. Extract productIds from items
- * 4. Fetch all products from DB to get actual prices (security)
- * 5. Validate all products exist
- * 6. Calculate totalPrice based on DB prices * quantity
- * 7. Use Prisma transaction to create Order and OrderItems atomically
- * 8. Return created order with items and product details
- * 
- * @param {Object} req - Express request object (req.user.uid available from authMiddleware)
- * @param {Object} res - Express response object
- */
 export const createOrder = asyncHandler(async (req, res) => {
-  // Step 1: Validate request body
   let data;
   try {
     data = await validate(createOrderSchema, req.body);
@@ -43,7 +19,6 @@ export const createOrder = asyncHandler(async (req, res) => {
     });
   }
 
-  // Step 2: Get user from database using Firebase UID
   const user = await prisma.user.findUnique({
     where: { firebaseUid: req.user.uid },
   });
@@ -55,17 +30,14 @@ export const createOrder = asyncHandler(async (req, res) => {
     });
   }
 
-  // Step 3: Extract productIds from items
   const productIds = data.items.map((item) => item.productId);
 
-  // Step 4: Fetch all products from DB to get actual prices (SECURITY: Never trust frontend prices)
   const products = await prisma.product.findMany({
     where: {
       id: { in: productIds },
     },
   });
 
-  // Step 5: Validate all products exist
   if (products.length !== productIds.length) {
     const foundIds = products.map((p) => p.id);
     const missingIds = productIds.filter((id) => !foundIds.includes(id));
@@ -76,8 +48,6 @@ export const createOrder = asyncHandler(async (req, res) => {
     });
   }
 
-  // Step 6: Calculate totalPrice based on DB prices * quantity
-  // Create a map for quick lookup
   const productMap = new Map(products.map((p) => [p.id, p]));
 
   let totalPrice = 0;
@@ -92,7 +62,6 @@ export const createOrder = asyncHandler(async (req, res) => {
       });
     }
 
-    // Calculate item total using DB price (never trust frontend)
     const itemPrice = Number(product.price);
     const itemTotal = itemPrice * item.quantity;
     totalPrice += itemTotal;
@@ -100,13 +69,11 @@ export const createOrder = asyncHandler(async (req, res) => {
     orderItemsData.push({
       productId: product.id,
       quantity: item.quantity,
-      price: itemPrice, // Store the actual DB price
+      price: itemPrice,
     });
   }
 
-  // Step 7: Use Prisma transaction to ensure data integrity
   const order = await prisma.$transaction(async (tx) => {
-    // Create the Order record
     const newOrder = await tx.order.create({
       data: {
         userId: user.id,
@@ -143,7 +110,6 @@ export const createOrder = asyncHandler(async (req, res) => {
     return newOrder;
   });
 
-  // Step 8: Return success response
   return res.status(201).json({
     success: true,
     message: 'Order created successfully',
@@ -151,21 +117,7 @@ export const createOrder = asyncHandler(async (req, res) => {
   });
 });
 
-/**
- * Get My Orders Controller
- * GET /api/orders
- * 
- * Flow:
- * 1. Get user from database using req.user.uid (firebaseUid)
- * 2. Fetch all orders for the user
- * 3. Include items and product details (name, image) for frontend display
- * 4. Sort by createdAt descending (newest first)
- * 
- * @param {Object} req - Express request object (req.user.uid available from authMiddleware)
- * @param {Object} res - Express response object
- */
 export const getMyOrders = asyncHandler(async (req, res) => {
-  // Step 1: Get user from database
   const user = await prisma.user.findUnique({
     where: { firebaseUid: req.user.uid },
   });
@@ -177,7 +129,6 @@ export const getMyOrders = asyncHandler(async (req, res) => {
     });
   }
 
-  // Step 2 & 3: Fetch orders with items and product details
   const orders = await prisma.order.findMany({
     where: {
       userId: user.id,
@@ -196,7 +147,6 @@ export const getMyOrders = asyncHandler(async (req, res) => {
         },
       },
     },
-    // Step 4: Sort by createdAt descending (newest first)
     orderBy: {
       createdAt: 'desc',
     },
@@ -210,22 +160,7 @@ export const getMyOrders = asyncHandler(async (req, res) => {
   });
 });
 
-/**
- * Get All Orders Controller (Admin Only)
- * GET /api/orders/all
- * 
- * Flow:
- * 1. Get user from database (already verified as admin by middleware)
- * 2. Fetch all orders from all users
- * 3. Include items, product details, and user information
- * 4. Sort by createdAt descending (newest first)
- * 5. Optional: Filter by status via query parameter
- * 
- * @param {Object} req - Express request object (req.user available from authenticateAndLoadUser + requireAdmin)
- * @param {Object} res - Express response object
- */
 export const getAllOrders = asyncHandler(async (req, res) => {
-  // Step 1: Get user from database (already loaded by middleware)
   const user = await prisma.user.findUnique({
     where: { firebaseUid: req.user.uid },
   });
@@ -237,7 +172,6 @@ export const getAllOrders = asyncHandler(async (req, res) => {
     });
   }
 
-  // Verify admin (should already be checked by middleware, but double-check)
   if (user.type !== 'admin') {
     return res.status(403).json({
       success: false,
@@ -245,7 +179,6 @@ export const getAllOrders = asyncHandler(async (req, res) => {
     });
   }
 
-  // Step 2: Build where clause (optional status filter)
   const where = {};
   if (req.query.status) {
     const validStatuses = ['PENDING', 'COMPLETED', 'CANCELLED'];
@@ -254,7 +187,6 @@ export const getAllOrders = asyncHandler(async (req, res) => {
     }
   }
 
-  // Step 3: Fetch all orders with full details
   const orders = await prisma.order.findMany({
     where,
     include: {
@@ -279,7 +211,6 @@ export const getAllOrders = asyncHandler(async (req, res) => {
         },
       },
     },
-    // Step 4: Sort by createdAt descending (newest first)
     orderBy: {
       createdAt: 'desc',
     },
@@ -293,27 +224,7 @@ export const getAllOrders = asyncHandler(async (req, res) => {
   });
 });
 
-/**
- * Update Order Status Controller
- * PATCH /api/orders/:id
- * 
- * Flow:
- * 1. Validate request body (status)
- * 2. Get user from database (for authorization check)
- * 3. Find order by ID
- * 4. Verify order belongs to user (or user is admin - can be extended)
- * 5. Validate status transition (only allow COMPLETED or CANCELLED)
- * 6. Update order status
- * 7. Return updated order
- * 
- * Note: Currently allows users to update their own orders.
- * For admin-only access, add role check in authMiddleware.
- * 
- * @param {Object} req - Express request object
- * @param {Object} res - Express response object
- */
 export const updateOrderStatus = asyncHandler(async (req, res) => {
-  // Step 1: Validate request body
   let data;
   try {
     data = await validate(updateOrderStatusSchema, req.body);
@@ -325,7 +236,6 @@ export const updateOrderStatus = asyncHandler(async (req, res) => {
     });
   }
 
-  // Step 2: Get user from database
   const user = await prisma.user.findUnique({
     where: { firebaseUid: req.user.uid },
   });
@@ -345,7 +255,6 @@ export const updateOrderStatus = asyncHandler(async (req, res) => {
     });
   }
 
-  // Step 3: Find order by ID
   const order = await prisma.order.findUnique({
     where: { id: orderId },
     include: {
@@ -371,11 +280,9 @@ export const updateOrderStatus = asyncHandler(async (req, res) => {
     });
   }
 
-  // Step 4: Role-based authorization and permission checks
   const isAdmin = user.type === 'admin';
   const isOrderOwner = order.userId === user.id;
 
-  // Check if user has permission to update this order
   if (!isAdmin && !isOrderOwner) {
     return res.status(403).json({
       success: false,
@@ -383,11 +290,7 @@ export const updateOrderStatus = asyncHandler(async (req, res) => {
     });
   }
 
-  // Step 5: Role-based status update validation
-  // Admin can update to any status (COMPLETED or CANCELLED)
-  // User can only cancel their own orders
   if (!isAdmin) {
-    // Regular users can only cancel their own orders
     if (data.status !== 'CANCELLED') {
       return res.status(403).json({
         success: false,
@@ -395,7 +298,6 @@ export const updateOrderStatus = asyncHandler(async (req, res) => {
       });
     }
 
-    // Users can only cancel their own orders
     if (!isOrderOwner) {
       return res.status(403).json({
         success: false,
@@ -404,8 +306,6 @@ export const updateOrderStatus = asyncHandler(async (req, res) => {
     }
   }
 
-  // Step 6: Validate status transition (for both admin and user)
-  // Only allow changing to COMPLETED or CANCELLED
   if (data.status !== 'COMPLETED' && data.status !== 'CANCELLED') {
     return res.status(400).json({
       success: false,
@@ -413,7 +313,6 @@ export const updateOrderStatus = asyncHandler(async (req, res) => {
     });
   }
 
-  // Prevent updating already completed or cancelled orders
   if (order.status === 'COMPLETED' || order.status === 'CANCELLED') {
     return res.status(400).json({
       success: false,
@@ -421,7 +320,6 @@ export const updateOrderStatus = asyncHandler(async (req, res) => {
     });
   }
 
-  // Step 7: Update order status
   const updatedOrder = await prisma.order.update({
     where: { id: orderId },
     data: {
@@ -450,11 +348,9 @@ export const updateOrderStatus = asyncHandler(async (req, res) => {
     },
   });
 
-  // Step 8: Return success response
   return res.status(200).json({
     success: true,
     message: 'Order status updated successfully',
     data: updatedOrder,
   });
 });
-

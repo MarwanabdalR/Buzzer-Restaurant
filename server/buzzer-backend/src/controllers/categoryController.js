@@ -25,7 +25,6 @@ export const getCategoryById = asyncHandler(async (req, res) => {
 });
 
 export const createCategory = asyncHandler(async (req, res) => {
-  // Validate body (image optional; file handled separately)
   try {
     await validateCategoryInput(req.body);
   } catch (err) {
@@ -35,10 +34,8 @@ export const createCategory = asyncHandler(async (req, res) => {
     });
   }
 
-  // Cloudinary upload via multer sets req.file; path has the secure URL
   const imageUrl = req.file?.path || req.body.image || null;
 
-  // If upload middleware ran but path is missing, treat as failure
   if (req.file && !req.file.path) {
     return res.status(400).json({ message: 'Image upload failed' });
   }
@@ -90,7 +87,6 @@ export const deleteCategory = asyncHandler(async (req, res) => {
     return res.status(404).json({ message: 'Category not found' });
   }
 
-  // Prevent delete if products exist to avoid FK violations
   const productCount = await prisma.product.count({ where: { categoryId: id } });
   if (productCount > 0) {
     return res.status(400).json({
