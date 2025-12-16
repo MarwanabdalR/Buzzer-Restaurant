@@ -1,0 +1,38 @@
+import { v2 as cloudinary } from 'cloudinary';
+import { CloudinaryStorage } from 'multer-storage-cloudinary';
+import multer from 'multer';
+
+// Configure Cloudinary credentials from environment variables
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+});
+
+// Safety check for missing credentials
+const missing = [];
+if (!process.env.CLOUDINARY_CLOUD_NAME) missing.push("CLOUDINARY_CLOUD_NAME");
+if (!process.env.CLOUDINARY_API_KEY) missing.push("CLOUDINARY_API_KEY");
+if (!process.env.CLOUDINARY_API_SECRET) missing.push("CLOUDINARY_API_SECRET");
+if (missing.length) {
+  console.warn(
+    `Cloudinary env vars missing: ${missing.join(
+      ", "
+    )}. Uploads will fail until these are set.`
+  );
+}
+
+// Create storage engine with allowed formats and target folder
+const storage = new CloudinaryStorage({
+  cloudinary,
+  params: {
+    folder: 'buzzer-app-uploads',
+    allowed_formats: ['jpg', 'png', 'jpeg'],
+  },
+});
+
+// Multer instance using Cloudinary storage
+export const upload = multer({ storage });
+
+export default upload;
+
