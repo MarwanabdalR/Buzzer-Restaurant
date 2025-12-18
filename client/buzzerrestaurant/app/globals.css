@@ -1,10 +1,10 @@
 @import "tailwindcss";
 
 :root {
-  --background: #1a1a1a;
-  --foreground: #ffffff;
-  --primary: #dc2626;
-  --primary-hover: #b91c1c;
+  --background: #ffffff;
+  --foreground: #000000;
+  --primary: #4d0d0d;
+  --primary-hover: #610808;
   --secondary: #2a2a2a;
   --border: #404040;
 }
@@ -16,11 +16,6 @@
   --font-mono: var(--font-geist-mono);
 }
 
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-}
 
 body {
   background: var(--background);

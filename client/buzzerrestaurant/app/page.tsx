@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { SplashScreen } from './components/ui/SplashScreen';
+import { Container } from './components/layout/Container';
 import { useAuth } from './context/AuthContext';
 
 export default function Home() {
@@ -33,10 +34,12 @@ export default function Home() {
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-gradient-to-b from-[#8B2E2E] via-[#A03A3A] to-[#6B1F1F]">
-      <main className="flex min-h-screen w-full max-w-3xl flex-col items-center justify-center py-32 px-16">
-        <h1 className="text-3xl md:text-4xl font-bold text-white mb-4">Welcome to Buzzer Restaurant</h1>
-        <p className="text-white/90 text-lg">Your dashboard will be here</p>
-      </main>
+      <Container>
+        <main className="flex min-h-screen w-full flex-col items-center justify-center py-16 sm:py-32">
+          <h1 className="text-3xl md:text-4xl font-bold text-white mb-4 text-center">Welcome to Buzzer Restaurant</h1>
+          <p className="text-white/90 text-lg text-center">Your dashboard will be here</p>
+        </main>
+      </Container>
     </div>
   );
 }
