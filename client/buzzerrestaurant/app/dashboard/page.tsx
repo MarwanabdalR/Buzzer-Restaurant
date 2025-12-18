@@ -1,8 +1,9 @@
 'use client';
 
 import React from 'react';
-import { useAdminStats } from '../../hooks/useAdminStats';
-import { StatsCard } from '../../components/admin/StatsCard';
+import { useAdminStats } from '../hooks/useAdminStats';
+import { StatsCard } from '../components/admin/StatsCard';
+import { QuickActionCard } from '../components/admin/QuickActionCard';
 import {
   UserGroupIcon,
   BuildingStorefrontIcon,
@@ -10,6 +11,7 @@ import {
   TagIcon,
   CubeIcon,
   CurrencyDollarIcon,
+  PlusIcon,
 } from '@heroicons/react/24/outline';
 import { motion } from 'framer-motion';
 
@@ -135,40 +137,91 @@ export default function AdminDashboard() {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 1 }}
+        className="mt-8"
+      >
+        <h2 className="text-2xl font-bold text-gray-900 mb-4">Quick Actions</h2>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
+          <QuickActionCard
+            title="Restaurants"
+            description="Manage restaurants"
+            icon={<BuildingStorefrontIcon className="w-6 h-6" />}
+            href="/dashboard/restaurants"
+            color="green"
+            delay={0}
+          />
+          <QuickActionCard
+            title="Categories"
+            description="Manage categories"
+            icon={<TagIcon className="w-6 h-6" />}
+            href="/dashboard/categories"
+            color="orange"
+            delay={0.1}
+          />
+          <QuickActionCard
+            title="Products"
+            description="Manage products"
+            icon={<CubeIcon className="w-6 h-6" />}
+            href="/dashboard/products"
+            color="purple"
+            delay={0.2}
+          />
+          <QuickActionCard
+            title="Orders"
+            description="View & manage orders"
+            icon={<RectangleStackIcon className="w-6 h-6" />}
+            href="/dashboard/orders"
+            color="yellow"
+            delay={0.3}
+          />
+          <QuickActionCard
+            title="Users"
+            description="View all users"
+            icon={<UserGroupIcon className="w-6 h-6" />}
+            href="/dashboard/users"
+            color="blue"
+            delay={0.4}
+          />
+        </div>
+      </motion.div>
+
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 1.2 }}
         className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-8"
       >
-        <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-100">
+        <div className="bg-white rounded-xl shadow-lg p-4 sm:p-6 border border-gray-100">
           <h3 className="text-lg font-semibold text-gray-900 mb-4">Orders Status</h3>
           <div className="space-y-4">
             <div className="flex items-center justify-between">
-              <span className="text-gray-600">Completed</span>
-              <span className="font-semibold text-green-600">{stats.orders.completed}</span>
+              <span className="text-gray-600 text-sm sm:text-base">Completed</span>
+              <span className="font-semibold text-green-600 text-sm sm:text-base">{stats.orders.completed}</span>
             </div>
             <div className="flex items-center justify-between">
-              <span className="text-gray-600">Pending</span>
-              <span className="font-semibold text-yellow-600">{stats.orders.pending}</span>
+              <span className="text-gray-600 text-sm sm:text-base">Pending</span>
+              <span className="font-semibold text-yellow-600 text-sm sm:text-base">{stats.orders.pending}</span>
             </div>
             <div className="flex items-center justify-between">
-              <span className="text-gray-600">Cancelled</span>
-              <span className="font-semibold text-red-600">{stats.orders.cancelled}</span>
+              <span className="text-gray-600 text-sm sm:text-base">Cancelled</span>
+              <span className="font-semibold text-red-600 text-sm sm:text-base">{stats.orders.cancelled}</span>
             </div>
           </div>
         </div>
 
-        <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-100">
+        <div className="bg-white rounded-xl shadow-lg p-4 sm:p-6 border border-gray-100">
           <h3 className="text-lg font-semibold text-gray-900 mb-4">Quick Stats</h3>
           <div className="space-y-4">
             <div className="flex items-center justify-between">
-              <span className="text-gray-600">Total Users</span>
-              <span className="font-semibold text-gray-900">{stats.users.total}</span>
+              <span className="text-gray-600 text-sm sm:text-base">Total Users</span>
+              <span className="font-semibold text-gray-900 text-sm sm:text-base">{stats.users.total}</span>
             </div>
             <div className="flex items-center justify-between">
-              <span className="text-gray-600">Total Restaurants</span>
-              <span className="font-semibold text-gray-900">{stats.restaurants.total}</span>
+              <span className="text-gray-600 text-sm sm:text-base">Total Restaurants</span>
+              <span className="font-semibold text-gray-900 text-sm sm:text-base">{stats.restaurants.total}</span>
             </div>
             <div className="flex items-center justify-between">
-              <span className="text-gray-600">Total Revenue</span>
-              <span className="font-semibold text-green-600">{formatCurrency(stats.revenue.total)}</span>
+              <span className="text-gray-600 text-sm sm:text-base">Total Revenue</span>
+              <span className="font-semibold text-green-600 text-sm sm:text-base">{formatCurrency(stats.revenue.total)}</span>
             </div>
           </div>
         </div>

@@ -19,12 +19,12 @@ interface NavItem {
 }
 
 const navigation: NavItem[] = [
-  { name: 'Dashboard', href: '/admin/dashboard', icon: HomeIcon },
-  { name: 'Restaurants', href: '/admin/dashboard/restaurants', icon: BuildingStorefrontIcon },
-  { name: 'Categories', href: '/admin/dashboard/categories', icon: TagIcon },
-  { name: 'Products', href: '/admin/dashboard/products', icon: CubeIcon },
-  { name: 'Orders', href: '/admin/dashboard/orders', icon: RectangleStackIcon },
-  { name: 'Users', href: '/admin/dashboard/users', icon: UserGroupIcon },
+  { name: 'Dashboard', href: '/dashboard', icon: HomeIcon },
+  { name: 'Restaurants', href: '/dashboard/restaurants', icon: BuildingStorefrontIcon },
+  { name: 'Categories', href: '/dashboard/categories', icon: TagIcon },
+  { name: 'Products', href: '/dashboard/products', icon: CubeIcon },
+  { name: 'Orders', href: '/dashboard/orders', icon: RectangleStackIcon },
+  { name: 'Users', href: '/dashboard/users', icon: UserGroupIcon },
 ];
 
 interface AdminSidebarProps {

@@ -78,3 +78,25 @@ export const getDashboardStats = asyncHandler(async (req, res) => {
   }
 });
 
+export const getAllUsers = asyncHandler(async (req, res) => {
+  const users = await prisma.user.findMany({
+    select: {
+      id: true,
+      fullName: true,
+      mobileNumber: true,
+      email: true,
+      image: true,
+      type: true,
+      createdAt: true,
+    },
+    orderBy: {
+      createdAt: 'desc',
+    },
+  });
+
+  return res.status(200).json({
+    success: true,
+    message: 'Users retrieved successfully',
+    data: users,
+  });
+});

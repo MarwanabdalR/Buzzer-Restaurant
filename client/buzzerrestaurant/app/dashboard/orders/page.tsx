@@ -2,8 +2,8 @@
 
 import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import api from '../../../lib/axios';
-import { getIdToken } from '../../../lib/firebase';
+import api from '../../lib/axios';
+import { getIdToken } from '../../lib/firebase';
 import { motion } from 'framer-motion';
 import toast from 'react-hot-toast';
 
