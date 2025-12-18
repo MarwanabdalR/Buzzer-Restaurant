@@ -114,10 +114,27 @@ export const login = asyncHandler(async (req, res) => {
   }
 
   const firebaseUid = decoded.uid;
+  const phoneNumber = decoded.phone_number; // Phone number from Firebase token
 
-  const user = await prisma.user.findUnique({
+  // Try to find user by firebaseUid first
+  let user = await prisma.user.findUnique({
     where: { firebaseUid },
   });
+
+  // If not found by firebaseUid, try to find by phone number
+  if (!user && phoneNumber) {
+    user = await prisma.user.findUnique({
+      where: { mobileNumber: phoneNumber },
+    });
+
+    // If found by phone number but firebaseUid doesn't match, update it
+    if (user && user.firebaseUid !== firebaseUid) {
+      user = await prisma.user.update({
+        where: { id: user.id },
+        data: { firebaseUid },
+      });
+    }
+  }
 
   if (!user) {
     return res.status(404).json({
