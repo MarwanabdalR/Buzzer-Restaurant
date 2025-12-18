@@ -41,7 +41,7 @@ interface ProfileProviderProps {
 }
 
 export const ProfileProvider: React.FC<ProfileProviderProps> = ({ children }) => {
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
 
@@ -127,12 +127,15 @@ export const ProfileProvider: React.FC<ProfileProviderProps> = ({ children }) =>
   };
 
   useEffect(() => {
-    if (user) {
-      fetchProfile();
-    } else {
-      setProfile(null);
+    if (!authLoading) {
+      if (user) {
+        fetchProfile();
+      } else {
+        setProfile(null);
+        setLoading(false);
+      }
     }
-  }, [user?.uid]);
+  }, [user?.uid, authLoading]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const value: ProfileContextType = {
     profile,

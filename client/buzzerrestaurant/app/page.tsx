@@ -8,12 +8,17 @@ import { MobileHeader } from './components/layout/MobileHeader';
 import { MobileSidebar } from './components/layout/MobileSidebar';
 import { useAuth } from './context/AuthContext';
 import { BottomNav } from './components/layout/BottomNav';
+import { useRestaurants } from './context/RestaurantContext';
+import { RestaurantSearchBar } from './components/shop/RestaurantSearchBar';
+import { RestaurantList } from './components/shop/RestaurantList';
 
 export default function Home() {
   const router = useRouter();
   const { user, loading } = useAuth();
   const [showSplash, setShowSplash] = useState(true);
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const { restaurants, loading: restaurantsLoading, error } = useRestaurants();
 
   useEffect(() => {
     if (!loading) {
@@ -28,7 +33,6 @@ export default function Home() {
     }
   }, [loading, user, router]);
 
-  // Prevent body scroll when sidebar is open
   useEffect(() => {
     if (sidebarOpen) {
       document.body.style.overflow = 'hidden';
@@ -40,6 +44,21 @@ export default function Home() {
     };
   }, [sidebarOpen]);
 
+  const handleSearch = () => {
+    // Filter restaurants based on search query
+    // This will be implemented when search functionality is needed
+  };
+
+  const filteredRestaurants = restaurants.filter((restaurant) => {
+    if (!searchQuery.trim()) return true;
+    const query = searchQuery.toLowerCase();
+    return (
+      restaurant.name.toLowerCase().includes(query) ||
+      restaurant.type.toLowerCase().includes(query) ||
+      restaurant.location.toLowerCase().includes(query)
+    );
+  });
+
   if (showSplash || loading) {
     return <SplashScreen />;
   }
@@ -49,19 +68,33 @@ export default function Home() {
   }
 
   return (
-    <div className="flex flex-col min-h-screen" style={{ backgroundColor: '#4d0d0d' }}>
-      <MobileHeader onMenuClick={() => setSidebarOpen(true)} />
+    <div className="flex flex-col min-h-screen bg-gray-50">
+      <MobileHeader 
+        onMenuClick={() => setSidebarOpen(true)} 
+        title="Restaurants"
+        showBackButton={false}
+      />
       <MobileSidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
       
-      <main className="flex-1">
+      <main className="flex-1 pb-20 overflow-y-auto">
+        <RestaurantSearchBar
+          searchQuery={searchQuery}
+          onSearchChange={setSearchQuery}
+          onSearch={handleSearch}
+        />
+
         <Container>
-          <div className="flex min-h-[calc(100vh-80px)] w-full flex-col items-center justify-center py-16 sm:py-32">
-            <h1 className="text-3xl md:text-4xl font-bold text-white mb-4 text-center">Welcome to Buzzer Restaurant</h1>
-            <p className="text-white/90 text-lg text-center">Your dashboard will be here</p>
+          <div className="py-4">
+            <RestaurantList
+              restaurants={filteredRestaurants}
+              loading={restaurantsLoading}
+              error={error}
+            />
           </div>
         </Container>
-        <BottomNav />
       </main>
+
+      <BottomNav />
     </div>
   );
 }

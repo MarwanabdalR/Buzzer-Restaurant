@@ -70,3 +70,13 @@ model OrderItem {
   quantity  Int
   price     Decimal @db.Decimal(10, 2)
 }
+
+model Restaurant {
+  id        String   @id @default(uuid())
+  name      String
+  type      String
+  location  String
+  rating    Float    @default(0)
+  imageUrl  String?
+  createdAt DateTime @default(now())
+}

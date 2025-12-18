@@ -1,7 +1,4 @@
 import asyncHandler from 'express-async-handler';
-import { PrismaClient } from '@prisma/client';
-
-const prisma = new PrismaClient();
 
 export const requireAdmin = asyncHandler(async (req, res, next) => {
   if (!req.user || !req.user.uid) {
@@ -11,28 +8,19 @@ export const requireAdmin = asyncHandler(async (req, res, next) => {
     });
   }
 
-  const user = await prisma.user.findUnique({
-    where: { firebaseUid: req.user.uid },
-    select: { id: true, type: true, fullName: true },
-  });
-
-  if (!user) {
-    return res.status(404).json({
+  if (!req.user.type) {
+    return res.status(403).json({
       success: false,
-      message: 'User not found. Please register first.',
+      message: 'User type not found. Please use authenticateAndLoadUser middleware first.',
     });
   }
 
-  if (user.type !== 'admin') {
+  if (req.user.type !== 'admin') {
     return res.status(403).json({
       success: false,
       message: 'Access denied. Admin privileges required.',
     });
   }
-
-  req.user.id = user.id;
-  req.user.type = user.type;
-  req.user.fullName = user.fullName;
 
   return next();
 });

@@ -4,6 +4,8 @@ import categoryRoutes from "./routes/categoryRoutes.js";
 import productRoutes from "./routes/productRoutes.js";
 import authRoutes from "./routes/authRoutes.js";
 import orderRoutes from "./routes/orderRoutes.js";
+import restaurantRoutes from "./routes/restaurantRoutes.js";
+import adminRoutes from "./routes/adminRoutes.js";
 import authenticate from './middlewares/authMiddleware.js';
 import cors from 'cors';
 
@@ -21,6 +23,8 @@ app.use("/api/categories", categoryRoutes);
 app.use("/api/products", productRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api/orders", orderRoutes);
+app.use("/api/restaurants", restaurantRoutes);
+app.use("/api/admin", adminRoutes);
 
 // Basic error handler to return JSON instead of HTML
 // eslint-disable-next-line no-unused-vars

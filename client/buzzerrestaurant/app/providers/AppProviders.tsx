@@ -4,6 +4,7 @@ import React, { ReactNode } from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { AuthProvider } from '../context/AuthContext';
 import { ProfileProvider } from '../context/ProfileContext';
+import { RestaurantProvider } from '../context/RestaurantContext';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -23,7 +24,9 @@ export const AppProviders: React.FC<AppProvidersProps> = ({ children }) => {
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
         <ProfileProvider>
-          {children}
+          <RestaurantProvider>
+            {children}
+          </RestaurantProvider>
         </ProfileProvider>
       </AuthProvider>
     </QueryClientProvider>
