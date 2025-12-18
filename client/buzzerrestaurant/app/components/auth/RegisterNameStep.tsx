@@ -7,36 +7,27 @@ import { ArrowLeftIcon } from '@heroicons/react/24/outline';
 import { z } from 'zod';
 import { WaveBackground } from '../ui/WaveBackground';
 
-const phoneSchema = z.object({
-  phone: z
+const registerSchema = z.object({
+  fullName: z
     .string()
-    .min(11, 'Phone number must be 11 digits')
-    .max(11, 'Phone number must be 11 digits')
-    .regex(/^(010|011|012|015)\d{8}$/, 'Phone number must start with 010, 011, 012, or 015 and be 11 digits'),
+    .min(3, 'Full name must be at least 3 characters')
+    .max(100, 'Full name must not exceed 100 characters'),
 });
 
-type PhoneFormData = z.infer<typeof phoneSchema>;
+type RegisterFormData = z.infer<typeof registerSchema>;
 
-interface PhoneInputStepProps {
-  form: UseFormReturn<PhoneFormData>;
+interface RegisterNameStepProps {
+  form: UseFormReturn<RegisterFormData>;
   loading: boolean;
-  onSubmit: (data: PhoneFormData) => void;
-  title?: string;
-  subtitle?: string;
-  buttonText?: string;
-  showBackButton?: boolean;
-  onBack?: () => void;
+  onBack: () => void;
+  onSubmit: (data: RegisterFormData) => void;
 }
 
-export const PhoneInputStep: React.FC<PhoneInputStepProps> = ({
+export const RegisterNameStep: React.FC<RegisterNameStepProps> = ({
   form,
   loading,
-  onSubmit,
-  title = 'Sign In',
-  subtitle = 'Please enter your phone number to continue using our app.',
-  buttonText = 'NEXT',
-  showBackButton = false,
   onBack,
+  onSubmit,
 }) => {
   return (
     <motion.div
@@ -51,49 +42,45 @@ export const PhoneInputStep: React.FC<PhoneInputStepProps> = ({
         topHeight="65%"
       >
         {/* Header */}
-        <div className="mt-12 px-6 relative z-10">
-          {showBackButton && onBack && (
+        <div className="px-6 pt-12 relative z-10">
+          <div className="flex items-center mb-8">
             <button
               onClick={onBack}
-              className="text-white mb-4"
-              type="button"
+              className="mr-4 text-white"
               disabled={loading}
+              type="button"
             >
               <ArrowLeftIcon className="w-6 h-6" />
             </button>
-          )}
-          <h2 className="text-white text-lg font-medium">{title}</h2>
+            <h2 className="text-white text-lg font-medium">Register</h2>
+          </div>
         </div>
 
         {/* Main Content */}
         <div className="flex-1 flex flex-col justify-center px-6 pb-20 relative z-10">
           <div className="mb-12">
-            <h1 className="text-2xl md:text-3xl font-bold text-white mb-4">Welcome!</h1>
+            <h1 className="text-2xl md:text-3xl font-bold text-white mb-4">Almost There!</h1>
             <p className="text-white/90 text-sm md:text-lg leading-relaxed">
-              {subtitle}
+              Please enter your full name to complete registration.
             </p>
           </div>
 
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
             <div>
               <input
-                {...form.register('phone')}
-                type="tel"
-                id="phone"
-                placeholder="Phone Number"
+                {...form.register('fullName')}
+                type="text"
+                id="fullName"
+                placeholder="Full Name"
                 className="w-full bg-transparent border-b-2 border-white/30 text-white text-lg pb-2 focus:outline-none focus:border-white placeholder-white/50 transition-colors"
                 disabled={loading}
               />
-              {form.formState.errors.phone && (
+              {form.formState.errors.fullName && (
                 <p className="mt-2 text-sm text-red-200">
-                  {form.formState.errors.phone.message}
+                  {form.formState.errors.fullName.message}
                 </p>
               )}
             </div>
-
-            {/* Invisible reCAPTCHA container */}
-            <div id="recaptcha-container" />
-
           </form>
         </div>
         {/* Bottom Button Section - positioned in white area after wave */}
@@ -111,7 +98,7 @@ export const PhoneInputStep: React.FC<PhoneInputStepProps> = ({
                 className="w-6 h-6 border-2 border-black border-t-transparent rounded-full"
               />
             ) : (
-              buttonText
+              'REGISTER'
             )}
           </button>
         </div>

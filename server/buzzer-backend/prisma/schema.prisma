@@ -24,7 +24,7 @@ model User {
   type         String?
   email        String?  @unique
   password     String?
-  image        String?
+  image        String?  @db.Text
 
   createdAt    DateTime @default(now())
   orders       Order[]

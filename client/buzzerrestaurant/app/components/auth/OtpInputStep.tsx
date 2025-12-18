@@ -55,7 +55,7 @@ export const OtpInputStep: React.FC<OtpInputStepProps> = ({
         topHeight="65%"
       >
         {/* Header */}
-        <div className="px-4 sm:px-6 pt-12 relative z-10">
+        <div className="px-6 pt-12 relative z-10">
           <div className="flex items-center mb-8">
             <button
               onClick={onBack}
@@ -65,27 +65,27 @@ export const OtpInputStep: React.FC<OtpInputStepProps> = ({
             >
               <ArrowLeftIcon className="w-6 h-6" />
             </button>
-            <h2 className="text-white text-xl font-medium">Login Code</h2>
+            <h2 className="text-white text-lg font-medium">Login Code</h2>
           </div>
         </div>
 
         {/* Main Content */}
-        <div className="flex-1 flex flex-col justify-center px-4 sm:px-6 pb-20 relative z-10">
+        <div className="flex-1 flex flex-col justify-center px-6 pb-20 relative z-10">
           <div className="max-w-md mx-auto w-full">
-            <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-white mb-4">Login by OTP</h1>
-            <p className="text-white/90 text-sm sm:text-base mb-8">
+            <h1 className="text-2xl md:text-3xl font-bold text-white mb-4">Login by OTP</h1>
+            <p className="text-white/90 text-sm md:text-base mb-8">
               Enter the authentication code we sent at {maskedPhone}
             </p>
 
             {/* Phone Number Display */}
             <div className="mb-6">
-              <div className="text-gray-600 text-sm sm:text-base mb-1">{displayPhone}</div>
+              <div className="text-gray-300 text-sm md:text-base mb-1">{displayPhone}</div>
               <div className="h-px bg-white/30"></div>
             </div>
 
             {/* OTP Input */}
             <div className="mb-8">
-              <label className="block text-gray-300 text-sm sm:text-base mb-3">Login Code</label>
+              <label className="block text-gray-300 text-sm md:text-base mb-3">Login Code</label>
               <div className="flex gap-1.5 sm:gap-2 justify-center">
                 {otpValues.map((value, index) => (
                   <input
@@ -116,7 +116,7 @@ export const OtpInputStep: React.FC<OtpInputStepProps> = ({
           </div>
         </div>
         {/* Bottom Button Section - positioned in white area after wave */}
-        <div className="px-32 rounded ">
+        <div className="px-32 rounded-t-[3rem]" style={{ backgroundColor: '#F5F5F5' }}>
           <button
             type="submit"
             onClick={form.handleSubmit(onSubmit)}

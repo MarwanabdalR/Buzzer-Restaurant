@@ -57,20 +57,33 @@ export const updateProfileSchema = Joi.object({
 
   email: Joi.string()
     .trim()
-    .email()
     .optional()
     .allow(null, '')
+    .custom((value, helpers) => {
+      if (!value || value === '') return null;
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (emailRegex.test(value)) {
+        return value;
+      }
+      return helpers.error('string.custom', { message: 'Email must be a valid email address' });
+    })
     .messages({
-      'string.email': 'Email must be a valid email address',
+      'string.custom': 'Email must be a valid email address',
     }),
 
   image: Joi.string()
     .trim()
-    .uri()
     .optional()
     .allow(null, '')
+    .custom((value, helpers) => {
+      if (!value || value === '') return value;
+      if (value.startsWith('data:image/') || value.startsWith('http://') || value.startsWith('https://')) {
+        return value;
+      }
+      return helpers.error('string.custom', { message: 'Image must be a valid URL or base64 data URL' });
+    })
     .messages({
-      'string.uri': 'Image must be a valid URL',
+      'string.custom': 'Image must be a valid URL or base64 data URL',
     }),
 
   mobileNumber: Joi.string()

@@ -150,6 +150,36 @@ export const login = asyncHandler(async (req, res) => {
   });
 });
 
+export const getProfile = asyncHandler(async (req, res) => {
+  // User is already loaded by authenticateAndLoadUser middleware
+  // But we need to return the user data in the expected format
+  const user = await prisma.user.findUnique({
+    where: { firebaseUid: req.user.uid },
+    select: {
+      id: true,
+      fullName: true,
+      mobileNumber: true,
+      email: true,
+      image: true,
+      type: true,
+      firebaseUid: true,
+    },
+  });
+
+  if (!user) {
+    return res.status(404).json({
+      success: false,
+      message: 'User not found. Please register first.',
+    });
+  }
+
+  return res.status(200).json({
+    success: true,
+    message: 'Profile retrieved successfully',
+    data: user,
+  });
+});
+
 export const updateProfile = asyncHandler(async (req, res) => {
   let data;
   try {
@@ -185,15 +215,18 @@ export const updateProfile = asyncHandler(async (req, res) => {
     }
   }
 
-  if (data.email && data.email !== user.email) {
-    const existingEmail = await prisma.user.findUnique({
-      where: { email: data.email },
-    });
-    if (existingEmail) {
-      return res.status(409).json({
-        success: false,
-        message: 'Email already in use by another account',
+  if (data.email !== undefined) {
+    const emailValue = data.email || null;
+    if (emailValue && emailValue !== user.email) {
+      const existingEmail = await prisma.user.findUnique({
+        where: { email: emailValue },
       });
+      if (existingEmail) {
+        return res.status(409).json({
+          success: false,
+          message: 'Email already in use by another account',
+        });
+      }
     }
   }
 
@@ -207,13 +240,31 @@ export const updateProfile = asyncHandler(async (req, res) => {
   const updateData = {};
   if (data.fullName !== undefined) updateData.fullName = data.fullName;
   if (data.email !== undefined) updateData.email = data.email || null;
-  if (data.image !== undefined) updateData.image = data.image || null;
+  if (data.image !== undefined) {
+    updateData.image = data.image || null;
+  }
   if (data.mobileNumber !== undefined) updateData.mobileNumber = data.mobileNumber;
 
-  const updatedUser = await prisma.user.update({
-    where: { firebaseUid: req.user.uid },
-    data: updateData,
-  });
+  try {
+    const updatedUser = await prisma.user.update({
+      where: { firebaseUid: req.user.uid },
+      data: updateData,
+    });
+
+    return res.status(200).json({
+      success: true,
+      message: 'Profile updated successfully',
+      data: updatedUser,
+    });
+  } catch (dbError) {
+    if (dbError.code === 'P1017') {
+      return res.status(500).json({
+        success: false,
+        message: 'Database connection timeout. The image may be too large. Please try a smaller image.',
+      });
+    }
+    throw dbError;
+  }
 
   return res.status(200).json({
     success: true,

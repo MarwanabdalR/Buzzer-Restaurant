@@ -5,12 +5,15 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { motion } from 'framer-motion';
-import { ArrowLeftIcon } from '@heroicons/react/24/outline';
+import { AnimatePresence } from 'framer-motion';
 import toast from 'react-hot-toast';
-import { sendOTP, verifyOTP, getIdToken, createRecaptchaVerifier } from '../../lib/firebase';
+import { sendOTP, verifyOTP, createRecaptchaVerifier } from '../../lib/firebase';
 import type { RecaptchaVerifier } from 'firebase/auth';
-import api from '../../lib/axios';
+import { PhoneInputStep } from '../../components/auth/PhoneInputStep';
+import { OtpInputStep } from '../../components/auth/OtpInputStep';
+import { RegisterNameStep } from '../../components/auth/RegisterNameStep';
+import { useAuth } from '../../context/AuthContext';
+import { useProfile } from '../../context/ProfileContext';
 
 // Validation schemas
 const phoneSchema = z.object({
@@ -39,6 +42,8 @@ type RegisterFormData = z.infer<typeof registerSchema>;
 export default function RegisterPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { register } = useAuth();
+  const { refreshProfile } = useProfile();
   const [step, setStep] = useState<'phone' | 'otp' | 'register'>('phone');
   const [loading, setLoading] = useState(false);
   const [phoneNumber, setPhoneNumber] = useState('');
@@ -77,6 +82,7 @@ export default function RegisterPage() {
       setStep('phone');
       phoneForm.setValue('phone', phone);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchParams]);
 
   useEffect(() => {
@@ -185,27 +191,43 @@ export default function RegisterPage() {
 
     setLoading(true);
     try {
-      const response = await api.post('/auth/register', {
+      await register({
         fullName: data.fullName,
         mobileNumber: `+2${phoneNumber}`,
         idToken,
       });
-
-      if (response.status === 201) {
-        toast.success('Registration successful!');
-        router.push('/');
-      }
+      
+      await refreshProfile();
+      toast.success('Registration successful!');
+      router.push('/profile');
     } catch (error: any) {
       console.error('Error registering:', error);
-      const errorMessage = error.response?.data?.message || 'Registration failed. Please try again.';
-      toast.error(errorMessage);
+      
+      // If user already exists, redirect to login
+      if (error.message === 'USER_EXISTS') {
+        toast.error('User already exists. Redirecting to login...');
+        router.push(`/login?phone=${phoneNumber}`);
+        return;
+      }
+      
+      toast.error(error.message || 'Registration failed. Please try again.');
       registerForm.setError('fullName', {
         type: 'manual',
-        message: errorMessage,
+        message: error.message || 'Registration failed. Please try again.',
       });
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleBack = () => {
+    setStep('phone');
+    setOtpValues(['', '', '', '', '', '']);
+    otpForm.reset();
+  };
+
+  const handleRegisterBack = () => {
+    setStep('otp');
   };
 
   useEffect(() => {
@@ -214,243 +236,45 @@ export default function RegisterPage() {
     }
   }, [step]);
 
-  const maskedPhone = phoneNumber ? `******${phoneNumber.slice(-3)}` : '';
-  const displayPhone = phoneNumber ? `+2 ${phoneNumber.slice(0, 4)} ${phoneNumber.slice(4)}` : '';
-
   return (
     <div className="min-h-screen flex flex-col">
-      {step === 'phone' && (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          className="flex-1 flex flex-col bg-gradient-to-b from-[#8B2E2E] via-[#A03A3A] to-[#6B1F1F]"
-        >
-          <div className="pt-12 pb-6 px-6">
-            <button
-              onClick={() => router.back()}
-              className="text-white mb-4"
-            >
-              <ArrowLeftIcon className="w-6 h-6" />
-            </button>
-            <h2 className="text-white text-xl font-medium">Register</h2>
-          </div>
-
-          <div className="flex-1 flex flex-col justify-center px-6 pb-8">
-            <div className="mb-12">
-              <h1 className="text-4xl md:text-5xl font-bold text-white mb-4">Welcome!</h1>
-              <p className="text-white/90 text-base md:text-lg leading-relaxed">
-                Please enter your phone number to create your account.
-              </p>
-            </div>
-
-            <form onSubmit={phoneForm.handleSubmit(handlePhoneSubmit)} className="space-y-8">
-              <div>
-                <label htmlFor="phone" className="block text-white text-sm font-medium mb-3">
-                  Phone Number
-                </label>
-                <input
-                  {...phoneForm.register('phone')}
-                  type="tel"
-                  id="phone"
-                  placeholder="01012345678"
-                  className="w-full bg-transparent border-b-2 border-white/30 text-white text-lg pb-2 focus:outline-none focus:border-white placeholder-white/50 transition-colors"
-                  disabled={loading}
-                />
-                {phoneForm.formState.errors.phone && (
-                  <p className="mt-2 text-sm text-red-200">
-                    {phoneForm.formState.errors.phone.message}
-                  </p>
-                )}
-              </div>
-
-              <div id="recaptcha-container" />
-
-              <div className="mt-16 pt-8 border-t border-white/20">
-                <p className="text-white/70 text-xs text-center leading-relaxed">
-                  By tapping next you agree to{' '}
-                  <a href="#" className="text-[#FFB800] underline">T&C</a>
-                  {' '}and{' '}
-                  <a href="#" className="text-[#FFB800] underline">Privacy Policy</a>.
-                </p>
-              </div>
-            </form>
-          </div>
-
-          <div className="bg-[#F5F5F5] px-6 py-8 rounded-t-[3rem]">
-            <button
-              type="submit"
-              onClick={phoneForm.handleSubmit(handlePhoneSubmit)}
-              disabled={loading}
-              className="w-full py-4 bg-[#FFB800] hover:bg-[#E5A700] text-black font-bold rounded-2xl transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed text-lg flex items-center justify-center shadow-lg"
-            >
-              {loading ? (
-                <motion.div
-                  animate={{ rotate: 360 }}
-                  transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
-                  className="w-6 h-6 border-2 border-black border-t-transparent rounded-full"
-                />
-              ) : (
-                'NEXT'
-              )}
-            </button>
-          </div>
-        </motion.div>
-      )}
-
-      {step === 'otp' && (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          className="flex-1 flex flex-col"
-        >
-          <div className="flex-1 flex flex-col bg-gradient-to-b from-[#8B2E2E] via-[#A03A3A] to-[#6B1F1F] px-6 pt-12 pb-8">
-            <div className="flex items-center mb-8">
-              <button
-                onClick={() => {
-                  setStep('phone');
-                  setOtpValues(['', '', '', '', '', '']);
-                  otpForm.reset();
-                }}
-                className="mr-4 text-white"
-                disabled={loading}
-              >
-                <ArrowLeftIcon className="w-6 h-6" />
-              </button>
-              <h2 className="text-white text-xl font-medium">Verification Code</h2>
-            </div>
-
-            <div className="flex-1 flex flex-col justify-center">
-              <h1 className="text-3xl md:text-4xl font-bold text-white mb-4">Verify Your Phone</h1>
-              <p className="text-white/90 text-base mb-8">
-                Enter the authentication code we sent at {maskedPhone}
-              </p>
-
-              <div className="mb-6">
-                <div className="text-gray-300 text-base mb-1">{displayPhone}</div>
-                <div className="h-px bg-white/30"></div>
-              </div>
-
-              <div className="mb-8">
-                <label className="block text-gray-300 text-base mb-3">Verification Code</label>
-                <div className="flex gap-2">
-                  {otpValues.map((value, index) => (
-                    <input
-                      key={index}
-                      ref={(el) => {
-                        otpInputRefs.current[index] = el;
-                      }}
-                      type="text"
-                      inputMode="numeric"
-                      maxLength={1}
-                      value={value}
-                      onChange={(e) => handleOtpChange(index, e.target.value.replace(/\D/g, ''))}
-                      onKeyDown={(e) => handleOtpKeyDown(index, e)}
-                      onPaste={handleOtpPaste}
-                      className="flex-1 bg-transparent border-b-2 border-white/30 text-white text-xl text-center pb-2 focus:outline-none focus:border-white transition-colors"
-                      disabled={loading}
-                    />
-                  ))}
-                </div>
-                {otpForm.formState.errors.otp && (
-                  <p className="mt-2 text-sm text-red-200">
-                    {otpForm.formState.errors.otp.message}
-                  </p>
-                )}
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-[#F5F5F5] px-6 py-8 rounded-t-[3rem] flex flex-col items-center">
-            <button
-              type="submit"
-              onClick={otpForm.handleSubmit(handleOtpSubmit)}
-              disabled={loading || otpValues.join('').length !== 6}
-              className="w-full py-4 bg-[#FFB800] hover:bg-[#E5A700] text-black font-bold rounded-2xl transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed text-lg flex items-center justify-center shadow-lg mb-6"
-            >
-              {loading ? (
-                <motion.div
-                  animate={{ rotate: 360 }}
-                  transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
-                  className="w-6 h-6 border-2 border-black border-t-transparent rounded-full"
-                />
-              ) : (
-                'VERIFY'
-              )}
-            </button>
-          </div>
-        </motion.div>
-      )}
-
-      {step === 'register' && (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          className="flex-1 flex flex-col bg-gradient-to-b from-[#8B2E2E] via-[#A03A3A] to-[#6B1F1F]"
-        >
-          <div className="pt-12 pb-6 px-6">
-            <button
-              onClick={() => setStep('otp')}
-              className="text-white mb-4"
-            >
-              <ArrowLeftIcon className="w-6 h-6" />
-            </button>
-            <h2 className="text-white text-xl font-medium">Complete Registration</h2>
-          </div>
-
-          <div className="flex-1 flex flex-col justify-center px-6 pb-8">
-            <div className="mb-12">
-              <h1 className="text-4xl md:text-5xl font-bold text-white mb-4">Almost There!</h1>
-              <p className="text-white/90 text-base md:text-lg leading-relaxed">
-                Please enter your full name to complete registration.
-              </p>
-            </div>
-
-            <form onSubmit={registerForm.handleSubmit(handleRegisterSubmit)} className="space-y-8">
-              <div>
-                <label htmlFor="fullName" className="block text-white text-sm font-medium mb-3">
-                  Full Name
-                </label>
-                <input
-                  {...registerForm.register('fullName')}
-                  type="text"
-                  id="fullName"
-                  placeholder="Enter your full name"
-                  className="w-full bg-transparent border-b-2 border-white/30 text-white text-lg pb-2 focus:outline-none focus:border-white placeholder-white/50 transition-colors"
-                  disabled={loading}
-                />
-                {registerForm.formState.errors.fullName && (
-                  <p className="mt-2 text-sm text-red-200">
-                    {registerForm.formState.errors.fullName.message}
-                  </p>
-                )}
-              </div>
-            </form>
-          </div>
-
-          <div className="bg-[#F5F5F5] px-6 py-8 rounded-t-[3rem]">
-            <button
-              type="submit"
-              onClick={registerForm.handleSubmit(handleRegisterSubmit)}
-              disabled={loading}
-              className="w-full py-4 bg-[#FFB800] hover:bg-[#E5A700] text-black font-bold rounded-2xl transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed text-lg flex items-center justify-center shadow-lg"
-            >
-              {loading ? (
-                <motion.div
-                  animate={{ rotate: 360 }}
-                  transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
-                  className="w-6 h-6 border-2 border-black border-t-transparent rounded-full"
-                />
-              ) : (
-                'REGISTER'
-              )}
-            </button>
-          </div>
-        </motion.div>
-      )}
+      <AnimatePresence mode="wait">
+        {step === 'phone' ? (
+          <PhoneInputStep
+            key="phone"
+            form={phoneForm}
+            loading={loading}
+            onSubmit={handlePhoneSubmit}
+            title="Register"
+            subtitle="Please enter your phone number to create your account."
+            buttonText="NEXT"
+            showBackButton={true}
+            onBack={handleBack}
+          />
+        ) : step === 'otp' ? (
+          <OtpInputStep
+            key="otp"
+            form={otpForm}
+            loading={loading}
+            phoneNumber={phoneNumber}
+            otpValues={otpValues}
+            otpInputRefs={otpInputRefs}
+            onBack={handleBack}
+            onSubmit={handleOtpSubmit}
+            onOtpChange={handleOtpChange}
+            onOtpKeyDown={handleOtpKeyDown}
+            onOtpPaste={handleOtpPaste}
+          />
+        ) : (
+          <RegisterNameStep
+            key="register"
+            form={registerForm}
+            loading={loading}
+            onBack={handleRegisterBack}
+            onSubmit={handleRegisterSubmit}
+          />
+        )}
+      </AnimatePresence>
     </div>
   );
 }
-

@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useRef, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -9,9 +9,10 @@ import { AnimatePresence } from 'framer-motion';
 import toast from 'react-hot-toast';
 import { sendOTP, verifyOTP, createRecaptchaVerifier } from '../../lib/firebase';
 import type { RecaptchaVerifier } from 'firebase/auth';
-import api from '../../lib/axios';
 import { PhoneInputStep } from '../../components/auth/PhoneInputStep';
 import { OtpInputStep } from '../../components/auth/OtpInputStep';
+import { useAuth } from '../../context/AuthContext';
+import { useProfile } from '../../context/ProfileContext';
 
 // Phone validation schema for Egyptian numbers
 const phoneSchema = z.object({
@@ -31,6 +32,9 @@ type OtpFormData = z.infer<typeof otpSchema>;
 
 export default function LoginPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const { login } = useAuth();
+  const { refreshProfile } = useProfile();
   const [step, setStep] = useState<'phone' | 'otp'>('phone');
   const [loading, setLoading] = useState(false);
   const [phoneNumber, setPhoneNumber] = useState('');
@@ -52,6 +56,16 @@ export default function LoginPage() {
       otp: '',
     },
   });
+
+  useEffect(() => {
+    // Check if redirected from register with phone number
+    const phone = searchParams.get('phone');
+    if (phone) {
+      setPhoneNumber(phone);
+      phoneForm.setValue('phone', phone);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams]);
 
   useEffect(() => {
     // Initialize reCAPTCHA verifier when component mounts
@@ -165,24 +179,19 @@ export default function LoginPage() {
       const userCredential = await verifyOTP(confirmationResult, data.otp);
       const idToken = await userCredential.user.getIdToken();
 
-      // Call backend API
+      // Call backend API via context
       try {
-        const response = await api.post('/auth/login', {
-          idToken,
-        });
-
-        if (response.status === 200) {
-          toast.success('Login successful!');
-          router.push('/');
-        }
+        await login(idToken);
+        await refreshProfile();
+        toast.success('Login successful!');
+        router.push('/profile');
       } catch (apiError: any) {
-        // If 404, redirect to register with phone number
-        if (apiError.response?.status === 404) {
+        // If user not found, redirect to register
+        if (apiError.message === 'USER_NOT_FOUND') {
           toast.error('User not found. Redirecting to registration...');
           router.push(`/register?phone=${phoneNumber}`);
         } else {
-          const errorMessage = apiError.response?.data?.message || 'Login failed. Please try again.';
-          toast.error(errorMessage);
+          toast.error(apiError.message || 'Login failed. Please try again.');
           throw apiError;
         }
       }
@@ -234,7 +243,6 @@ export default function LoginPage() {
             onOtpChange={handleOtpChange}
             onOtpKeyDown={handleOtpKeyDown}
             onOtpPaste={handleOtpPaste}
-            onResend={handleResendOTP}
           />
         )}
       </AnimatePresence>
