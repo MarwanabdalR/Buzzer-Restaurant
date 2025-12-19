@@ -66,9 +66,12 @@ function AdminModalManager() {
         name: data.name,
         description: data.description || null,
         price: parseFloat(data.price),
+        originalPrice: data.originalPrice ? parseFloat(data.originalPrice) : null,
         image: data.imageUrl || null,
         rate: data.rate || null,
+        isFeatured: data.isFeatured || false,
         categoryId: data.categoryId,
+        restaurantId: data.restaurantId || null,
       };
 
       if (modalState.action === 'create') {
@@ -125,9 +128,12 @@ function AdminModalManager() {
         name: data.name,
         description: data.description,
         price: data.price,
+        originalPrice: data.originalPrice,
         image: data.image,
         rate: data.rate,
+        isFeatured: data.isFeatured,
         categoryId: data.categoryId,
+        restaurantId: data.restaurantId,
       };
     }
 

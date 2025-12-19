@@ -3,3 +3,31 @@ node_modules
 .env
 
 /generated/prisma
+
+# Debug and log files
+*.log
+debug.log
+**/debug.log
+
+# Build artifacts
+.next
+out
+dist
+build
+
+# Cache and temporary files
+.cache
+.turbo
+.vercel
+*.tsbuildinfo
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE files
+.vscode
+.idea
+*.swp
+*.swo
+*~

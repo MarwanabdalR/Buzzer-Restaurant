@@ -1,7 +1,8 @@
 'use client';
 
 import React from 'react';
-import Image from 'next/image';
+import { ImageWithLoader } from '../ui/ImageWithLoader';
+import { useRouter } from 'next/navigation';
 import { MapPinIcon } from '@heroicons/react/24/solid';
 import { StarIcon } from '@heroicons/react/24/solid';
 import { motion } from 'framer-motion';
@@ -12,6 +13,12 @@ interface RestaurantCardProps {
 }
 
 export const RestaurantCard: React.FC<RestaurantCardProps> = ({ restaurant }) => {
+  const router = useRouter();
+
+  const handleClick = () => {
+    router.push(`/supplier/${restaurant.id}/products`);
+  };
+
   const renderStars = (rating: number) => {
     const stars = [];
     const fullStars = Math.floor(rating);
@@ -60,6 +67,7 @@ export const RestaurantCard: React.FC<RestaurantCardProps> = ({ restaurant }) =>
     <motion.div
       whileHover={{ scale: 1.02 }}
       whileTap={{ scale: 0.98 }}
+      onClick={handleClick}
       className="bg-gray-50 rounded-2xl overflow-hidden mb-4 cursor-pointer"
     >
       <div className="flex flex-row">
@@ -68,12 +76,13 @@ export const RestaurantCard: React.FC<RestaurantCardProps> = ({ restaurant }) =>
           className="relative w-28 h-28 shrink-0 rounded-2xl overflow-hidden"
         >
           {restaurant.imageUrl ? (
-            <Image
+            <ImageWithLoader
               src={restaurant.imageUrl}
               alt={restaurant.name}
               fill
-              className="object-cover"
+              className=""
               sizes="112px"
+              objectFit="cover"
             />
           ) : (
             <div className="w-full h-full bg-gray-200 flex items-center justify-center">

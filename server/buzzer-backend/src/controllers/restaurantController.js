@@ -5,7 +5,7 @@ import { createRestaurantSchema, updateRestaurantSchema } from '../utils/restaur
 const prisma = new PrismaClient();
 
 const validateRestaurantInput = async (data, schema) => {
-  await schema.validateAsync(data, { abortEarly: false });
+  await schema.validateAsync(data, { abortEarly: false, stripUnknown: true });
 };
 
 export const getAllRestaurants = asyncHandler(async (req, res) => {
@@ -54,11 +54,21 @@ export const createRestaurant = asyncHandler(async (req, res) => {
     });
   }
 
+  // Handle latitude/longitude: convert empty strings to null and ensure they're numbers or null
+  const latitude = req.body.latitude !== undefined && req.body.latitude !== '' && req.body.latitude !== null
+    ? parseFloat(req.body.latitude)
+    : null;
+  const longitude = req.body.longitude !== undefined && req.body.longitude !== '' && req.body.longitude !== null
+    ? parseFloat(req.body.longitude)
+    : null;
+
   const restaurant = await prisma.restaurant.create({
     data: {
       name: req.body.name,
       type: req.body.type,
       location: req.body.location,
+      latitude: isNaN(latitude) ? null : latitude,
+      longitude: isNaN(longitude) ? null : longitude,
       rating: req.body.rating || 0,
       imageUrl: req.body.imageUrl || null,
     },
@@ -99,6 +109,21 @@ export const updateRestaurant = asyncHandler(async (req, res) => {
   if (req.body.name !== undefined) updateData.name = req.body.name;
   if (req.body.type !== undefined) updateData.type = req.body.type;
   if (req.body.location !== undefined) updateData.location = req.body.location;
+  
+  // Handle latitude/longitude: convert empty strings to null and ensure they're numbers or null
+  if (req.body.latitude !== undefined) {
+    const latitude = req.body.latitude !== '' && req.body.latitude !== null
+      ? parseFloat(req.body.latitude)
+      : null;
+    updateData.latitude = isNaN(latitude) ? null : latitude;
+  }
+  if (req.body.longitude !== undefined) {
+    const longitude = req.body.longitude !== '' && req.body.longitude !== null
+      ? parseFloat(req.body.longitude)
+      : null;
+    updateData.longitude = isNaN(longitude) ? null : longitude;
+  }
+  
   if (req.body.rating !== undefined) updateData.rating = req.body.rating;
   if (req.body.imageUrl !== undefined) updateData.imageUrl = req.body.imageUrl || null;
 
@@ -136,5 +161,110 @@ export const deleteRestaurant = asyncHandler(async (req, res) => {
     success: true,
     message: 'Restaurant deleted successfully',
   });
+});
+
+/**
+ * Find nearby restaurants using Haversine formula
+ * POST /api/restaurants/nearby
+ * Body: { userLat, userLng, radiusKM? }
+ */
+export const getNearbyRestaurants = asyncHandler(async (req, res) => {
+  const { userLat, userLng, radiusKM = 10 } = req.body;
+
+  // Validate input
+  if (typeof userLat !== 'number' || typeof userLng !== 'number') {
+    return res.status(400).json({
+      success: false,
+      message: 'userLat and userLng are required and must be numbers',
+    });
+  }
+
+  if (isNaN(userLat) || isNaN(userLng)) {
+    return res.status(400).json({
+      success: false,
+      message: 'Invalid coordinates provided',
+    });
+  }
+
+  // Validate latitude and longitude ranges
+  if (userLat < -90 || userLat > 90 || userLng < -180 || userLng > 180) {
+    return res.status(400).json({
+      success: false,
+      message: 'Invalid latitude or longitude range',
+    });
+  }
+
+  const radius = parseFloat(radiusKM);
+  if (isNaN(radius) || radius <= 0) {
+    return res.status(400).json({
+      success: false,
+      message: 'radiusKM must be a positive number',
+    });
+  }
+
+  // Haversine formula using raw SQL query
+  // Distance in kilometers
+  const query = `
+    SELECT 
+      r.*,
+      (
+        6371 * acos(
+          cos(radians(?)) * 
+          cos(radians(r.latitude)) * 
+          cos(radians(r.longitude) - radians(?)) + 
+          sin(radians(?)) * 
+          sin(radians(r.latitude))
+        )
+      ) AS distance
+    FROM Restaurant r
+    WHERE r.latitude IS NOT NULL 
+      AND r.longitude IS NOT NULL
+      AND (
+        6371 * acos(
+          cos(radians(?)) * 
+          cos(radians(r.latitude)) * 
+          cos(radians(r.longitude) - radians(?)) + 
+          sin(radians(?)) * 
+          sin(radians(r.latitude))
+        )
+      ) <= ?
+    ORDER BY distance ASC
+    LIMIT 50
+  `;
+
+  try {
+    const results = await prisma.$queryRawUnsafe(
+      query,
+      userLat,
+      userLng,
+      userLat,
+      userLat,
+      userLng,
+      userLat,
+      radius
+    );
+
+    // Convert BigInt to Number for distance and format the results
+    const restaurants = results.map((restaurant) => ({
+      ...restaurant,
+      distance: restaurant.distance ? parseFloat(restaurant.distance) : null,
+      rating: restaurant.rating ? parseFloat(restaurant.rating) : 0,
+      latitude: restaurant.latitude ? parseFloat(restaurant.latitude) : null,
+      longitude: restaurant.longitude ? parseFloat(restaurant.longitude) : null,
+    }));
+
+    return res.status(200).json({
+      success: true,
+      message: 'Nearby restaurants retrieved successfully',
+      data: restaurants,
+    });
+  } catch (error) {
+    console.error('Error fetching nearby restaurants:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Error fetching nearby restaurants',
+      error: error.message,
+    });
+  }
 });
 

@@ -5,6 +5,7 @@ import {
   createRestaurant,
   updateRestaurant,
   deleteRestaurant,
+  getNearbyRestaurants,
 } from '../controllers/restaurantController.js';
 import { authenticateAndLoadUser } from '../middlewares/authMiddleware.js';
 import requireAdmin from '../middlewares/adminMiddleware.js';
@@ -12,6 +13,7 @@ import requireAdmin from '../middlewares/adminMiddleware.js';
 const router = express.Router();
 
 router.get('/', getAllRestaurants);
+router.post('/nearby', getNearbyRestaurants); // Must be before /:id
 router.get('/:id', getRestaurantById);
 router.post('/', authenticateAndLoadUser, requireAdmin, createRestaurant);
 router.patch('/:id', authenticateAndLoadUser, requireAdmin, updateRestaurant);

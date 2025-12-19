@@ -6,11 +6,16 @@ import { SplashScreen } from './components/ui/SplashScreen';
 import { Container } from './components/layout/Container';
 import { MobileHeader } from './components/layout/MobileHeader';
 import { MobileSidebar } from './components/layout/MobileSidebar';
+import { DesktopHeader } from './components/layout/DesktopHeader';
+import { DesktopFooter } from './components/layout/DesktopFooter';
 import { useAuth } from './context/AuthContext';
 import { BottomNav } from './components/layout/BottomNav';
 import { useRestaurants } from './context/RestaurantContext';
 import { RestaurantSearchBar } from './components/shop/RestaurantSearchBar';
 import { RestaurantList } from './components/shop/RestaurantList';
+import { HeroSection } from './components/home/HeroSection';
+import { OurSuppliersSection } from './components/home/OurSuppliersSection';
+import { NearestRestaurantsSection } from './components/home/NearestRestaurantsSection';
 
 export default function Home() {
   const router = useRouter();
@@ -69,32 +74,57 @@ export default function Home() {
 
   return (
     <div className="flex flex-col min-h-screen bg-gray-50">
+      {/* Mobile Header - hidden on desktop */}
       <MobileHeader 
         onMenuClick={() => setSidebarOpen(true)} 
         title="Restaurants"
         showBackButton={false}
       />
+      
+      {/* Desktop Header - hidden on mobile */}
+      <DesktopHeader />
+      
       <MobileSidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
       
-      <main className="flex-1 pb-20 overflow-y-auto">
-        <RestaurantSearchBar
-          searchQuery={searchQuery}
-          onSearchChange={setSearchQuery}
-          onSearch={handleSearch}
-        />
+      <main className="flex-1 pb-20 md:pb-0 overflow-y-auto">
+        {/* Mobile View */}
+        <div className="md:hidden">
+          <RestaurantSearchBar
+            searchQuery={searchQuery}
+            onSearchChange={setSearchQuery}
+            onSearch={handleSearch}
+          />
 
-        <Container>
-          <div className="py-4">
-            <RestaurantList
-              restaurants={filteredRestaurants}
-              loading={restaurantsLoading}
-              error={error}
-            />
-          </div>
-        </Container>
+          <Container>
+            <div className="py-4">
+              <RestaurantList
+                restaurants={filteredRestaurants}
+                loading={restaurantsLoading}
+                error={error}
+              />
+            </div>
+          </Container>
+        </div>
+
+        {/* Desktop View */}
+        <div className="hidden md:block">
+          <HeroSection />
+          <OurSuppliersSection
+            restaurants={restaurants}
+            loading={restaurantsLoading}
+          />
+          <NearestRestaurantsSection
+            restaurants={restaurants}
+            loading={restaurantsLoading}
+          />
+        </div>
       </main>
 
+      {/* Mobile Bottom Nav - hidden on desktop */}
       <BottomNav />
+      
+      {/* Desktop Footer - hidden on mobile */}
+      <DesktopFooter />
     </div>
   );
 }

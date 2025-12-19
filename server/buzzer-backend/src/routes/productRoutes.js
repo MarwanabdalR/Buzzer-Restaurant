@@ -7,15 +7,15 @@ import {
   updateProduct,
   deleteProduct,
 } from '../controllers/productController.js';
-import authenticate from '../middlewares/authMiddleware.js';
+import { authenticateAndLoadUser } from '../middlewares/authMiddleware.js';
 import requireAdmin from '../middlewares/adminMiddleware.js';
 
 const router = express.Router();
 
 router.get('/', getAllProducts);
 router.get('/:id', getProductById);
-router.post('/', authenticate, requireAdmin, upload.single('image'), createProduct);
-router.put('/:id', authenticate, requireAdmin, upload.single('image'), updateProduct);
-router.delete('/:id', authenticate, requireAdmin, deleteProduct);
+router.post('/', authenticateAndLoadUser, requireAdmin, upload.single('image'), createProduct);
+router.put('/:id', authenticateAndLoadUser, requireAdmin, upload.single('image'), updateProduct);
+router.delete('/:id', authenticateAndLoadUser, requireAdmin, deleteProduct);
 
 export default router;

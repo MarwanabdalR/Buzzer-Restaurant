@@ -15,9 +15,13 @@ interface ProductContextType {
     name: string;
     description?: string | null;
     price: string | number;
+    originalPrice?: string | number | null;
+    discountPercent?: number | null;
     image?: string | null;
     rate?: number | null;
+    isFeatured?: boolean;
     categoryId: number;
+    restaurantId?: string | null;
   }) => Promise<Product>;
   updateProduct: (
     id: number,
@@ -25,9 +29,13 @@ interface ProductContextType {
       name?: string;
       description?: string | null;
       price?: string | number;
+      originalPrice?: string | number | null;
+      discountPercent?: number | null;
       image?: string | null;
       rate?: number | null;
+      isFeatured?: boolean;
       categoryId?: number;
+      restaurantId?: string | null;
     }
   ) => Promise<Product>;
   deleteProduct: (id: number) => Promise<void>;
@@ -68,9 +76,13 @@ export const ProductProvider: React.FC<ProductProviderProps> = ({ children }) =>
       name: string;
       description?: string | null;
       price: string | number;
+      originalPrice?: string | number | null;
+      discountPercent?: number | null;
       image?: string | null;
       rate?: number | null;
+      isFeatured?: boolean;
       categoryId: number;
+      restaurantId?: string | null;
     }) => {
       const idToken = await getIdToken();
       if (!idToken) throw new Error('User not authenticated');
@@ -107,9 +119,13 @@ export const ProductProvider: React.FC<ProductProviderProps> = ({ children }) =>
         name?: string;
         description?: string | null;
         price?: string | number;
+        originalPrice?: string | number | null;
+        discountPercent?: number | null;
         image?: string | null;
         rate?: number | null;
+        isFeatured?: boolean;
         categoryId?: number;
+        restaurantId?: string | null;
       };
     }) => {
       const idToken = await getIdToken();
@@ -161,9 +177,13 @@ export const ProductProvider: React.FC<ProductProviderProps> = ({ children }) =>
     name: string;
     description?: string | null;
     price: string | number;
+    originalPrice?: string | number | null;
+    discountPercent?: number | null;
     image?: string | null;
     rate?: number | null;
+    isFeatured?: boolean;
     categoryId: number;
+    restaurantId?: string | null;
   }): Promise<Product> => {
     return createMutation.mutateAsync(data);
   };
@@ -174,9 +194,13 @@ export const ProductProvider: React.FC<ProductProviderProps> = ({ children }) =>
       name?: string;
       description?: string | null;
       price?: string | number;
+      originalPrice?: string | number | null;
+      discountPercent?: number | null;
       image?: string | null;
       rate?: number | null;
+      isFeatured?: boolean;
       categoryId?: number;
+      restaurantId?: string | null;
     }
   ): Promise<Product> => {
     return updateMutation.mutateAsync({ id, data });

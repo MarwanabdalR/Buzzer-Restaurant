@@ -68,11 +68,30 @@ export default function ProductsPage() {
       ),
     },
     {
+      key: 'restaurant',
+      header: 'Restaurant',
+      render: (product) => (
+        <span className="px-2 py-1 bg-blue-100 text-blue-700 rounded-md text-sm">
+          {product.restaurant?.name || 'N/A'}
+        </span>
+      ),
+    },
+    {
       key: 'price',
       header: 'Price',
-      render: (product) => (
-        <span className="font-semibold text-gray-900">${parseFloat(product.price).toFixed(2)}</span>
-      ),
+      render: (product) => {
+        const hasDiscount = product.originalPrice && parseFloat(product.originalPrice) > parseFloat(product.price);
+        return (
+          <div className="flex flex-col">
+            <span className="font-semibold text-gray-900">EGP {parseFloat(product.price).toFixed(2)}</span>
+            {hasDiscount && (
+              <span className="text-xs text-gray-400 line-through">
+                EGP {parseFloat(product.originalPrice!).toFixed(2)}
+              </span>
+            )}
+          </div>
+        );
+      },
     },
     {
       key: 'rate',
@@ -80,6 +99,19 @@ export default function ProductsPage() {
       render: (product) => (
         <span className="font-semibold text-gray-900">
           {product.rate ? product.rate.toFixed(1) : 'N/A'} ⭐
+        </span>
+      ),
+    },
+    {
+      key: 'featured',
+      header: 'Featured',
+      render: (product) => (
+        <span className={`px-2 py-1 rounded-md text-xs font-medium ${
+          product.isFeatured 
+            ? 'bg-[#FFB800] text-[#4d0d0d]' 
+            : 'bg-gray-100 text-gray-600'
+        }`}>
+          {product.isFeatured ? 'Yes' : 'No'}
         </span>
       ),
     },

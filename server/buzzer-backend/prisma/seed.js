@@ -1,5 +1,5 @@
-// prisma/seed.js
-// Prisma v6-compatible seed script using @prisma/client (no adapter required).
+
+
 import 'dotenv/config';
 import { PrismaClient } from '@prisma/client';
 
@@ -8,7 +8,6 @@ const prisma = new PrismaClient();
 async function main() {
   console.log('🚀 Starting simple Prisma seed / test...');
 
-  // 1) Optional: clean existing data in safe FK order
   try {
     await prisma.orderItem.deleteMany();
     await prisma.order.deleteMany();
@@ -20,7 +19,6 @@ async function main() {
     console.warn('⚠️ Skipping clean step:', err.message);
   }
 
-  // 2) Create a test user
   const user = await prisma.user.create({
     data: {
       fullName: 'Test User',
@@ -32,7 +30,6 @@ async function main() {
   });
   console.log('✅ User created:', user);
 
-  // 3) Create a test category
   const category = await prisma.category.create({
     data: {
       name: 'Test Category',
@@ -41,7 +38,6 @@ async function main() {
   });
   console.log('✅ Category created:', category);
 
-  // 4) Create a test product
   const product = await prisma.product.create({
     data: {
       name: 'Test Product',
@@ -53,7 +49,6 @@ async function main() {
   });
   console.log('✅ Product created:', product);
 
-  // 5) Create an order with one item
   const order = await prisma.order.create({
     data: {
       userId: user.id,
@@ -76,7 +71,6 @@ async function main() {
   });
   console.log('✅ Order created with item:', order);
 
-  // 6) Read back data
   const users = await prisma.user.findMany();
   console.log('📂 All users in DB:', users);
 

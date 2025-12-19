@@ -4,6 +4,7 @@ import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { RestaurantCard } from './RestaurantCard';
 import { Restaurant } from '../../types';
+import { useRestaurants } from '../../context/RestaurantContext';
 
 interface RestaurantListProps {
   restaurants: Restaurant[];
@@ -16,6 +17,8 @@ export const RestaurantList: React.FC<RestaurantListProps> = ({
   loading,
   error,
 }) => {
+  const { fetchRestaurants } = useRestaurants();
+
   if (loading) {
     return (
       <div className="flex items-center justify-center py-12">
@@ -33,9 +36,20 @@ export const RestaurantList: React.FC<RestaurantListProps> = ({
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        className="text-center py-12 text-red-600"
+        className="text-center py-12"
       >
-        Failed to load restaurants. Please try again.
+        <div className="text-red-600 mb-4">
+          <p className="font-semibold mb-2">Failed to load restaurants</p>
+          <p className="text-sm text-gray-600">{error.message || 'Please try again.'}</p>
+        </div>
+        <motion.button
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+          onClick={() => fetchRestaurants()}
+          className="bg-[#4d0d0d] text-white px-6 py-2 rounded-lg font-medium hover:bg-[#3d0a0a] transition-colors"
+        >
+          Retry
+        </motion.button>
       </motion.div>
     );
   }

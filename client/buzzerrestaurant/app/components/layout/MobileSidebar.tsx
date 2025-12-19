@@ -15,15 +15,12 @@ interface MobileSidebarProps {
 }
 
 const navigationItems = [
-  'Offers',
+  'Restaurants',
   'Featured Products',
   'Suppliers',
-  'Articles',
-  'Image Gallery',
   'FAQs',
   'Settings',
   'About Us',
-  'Mission & Vision',
   'Contact Us',
   'Privacy Policy',
   'Terms & Conditions',
@@ -32,10 +29,46 @@ const navigationItems = [
 export const MobileSidebar: React.FC<MobileSidebarProps> = ({
   isOpen,
   onClose,
-  activeItem = 'Offers',
+  activeItem = 'Restaurants',
 }) => {
   const { logout } = useAuth();
   const router = useRouter();
+
+  const handleNavigation = (item: string) => {
+    onClose();
+    
+    switch (item) {
+      case 'Restaurants':
+        router.push('/');
+        break;
+      case 'Featured Products':
+        router.push('/featured-products');
+        break;
+      case 'Suppliers':
+        router.push('/');
+        break;
+      case 'FAQs':
+        router.push('/faqs');
+        break;
+      case 'Settings':
+        router.push('/settings');
+        break;
+      case 'About Us':
+        router.push('/about-us');
+        break;
+      case 'Contact Us':
+        router.push('/contact-us');
+        break;
+      case 'Privacy Policy':
+        router.push('/privacy-policy');
+        break;
+      case 'Terms & Conditions':
+        router.push('/terms-conditions');
+        break;
+      default:
+        break;
+    }
+  };
 
   const handleLogout = async () => {
     try {
@@ -58,7 +91,7 @@ export const MobileSidebar: React.FC<MobileSidebarProps> = ({
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               onClick={onClose}
-              className="fixed inset-0 bg-black/50 z-40"
+              className="md:hidden fixed inset-0 bg-black/50 z-40"
             />
           </>
         )}
@@ -72,7 +105,7 @@ export const MobileSidebar: React.FC<MobileSidebarProps> = ({
             animate={{ x: 0 }}
             exit={{ x: -320 }}
             transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-            className="fixed left-0 top-0 bottom-0 w-80 z-50 overflow-y-auto"
+            className="md:hidden fixed left-0 top-0 bottom-0 w-80 z-50 overflow-y-auto"
             style={{ backgroundColor: '#4d0d0d' }}
           >
             <div className="flex flex-col h-full">
@@ -104,11 +137,11 @@ export const MobileSidebar: React.FC<MobileSidebarProps> = ({
                     return (
                       <li key={item}>
                         <button
-                          onClick={onClose}
+                          onClick={() => handleNavigation(item)}
                           className={`w-full text-left text-sm px-4 py-3 rounded-lg transition-colors relative ${
                             isActive
                               ? 'text-white'
-                              : 'text-white hover:text-white'
+                              : 'text-white/90 hover:text-white hover:bg-white/10'
                           }`}
                           style={
                             isActive

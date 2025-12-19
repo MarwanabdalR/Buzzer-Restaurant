@@ -2,14 +2,17 @@
 
 import React from 'react';
 import { usePathname, useRouter } from 'next/navigation';
+import { motion } from 'framer-motion';
 import { HomeIcon, BellIcon } from '@heroicons/react/24/outline';
 import { HomeIcon as HomeIconSolid, BellIcon as BellIconSolid } from '@heroicons/react/24/solid';
+import { useOrders } from '../../context/OrderContext';
 
 interface BottomNavProps {}
 
 export const BottomNav: React.FC<BottomNavProps> = () => {
   const router = useRouter();
   const pathname = usePathname();
+  const { unreadCount } = useOrders();
 
   const isHome = pathname === '/';
   const isNotifications = pathname === '/notifications';
@@ -17,7 +20,7 @@ export const BottomNav: React.FC<BottomNavProps> = () => {
 
   return (
     <nav 
-      className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-30 safe-area-bottom"
+      className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-30 safe-area-bottom"
       style={{
         paddingBottom: 'env(safe-area-inset-bottom)',
       }}
@@ -46,14 +49,25 @@ export const BottomNav: React.FC<BottomNavProps> = () => {
         {/* Notifications Button */}
         <button
           onClick={() => router.push('/notifications')}
-          className="flex flex-col items-center justify-center py-2 px-3 flex-1 min-h-[56px] active:bg-gray-50 rounded-lg transition-colors touch-manipulation"
+          className="relative flex flex-col items-center justify-center py-2 px-3 flex-1 min-h-[56px] active:bg-gray-50 rounded-lg transition-colors touch-manipulation"
           aria-label="Notifications"
         >
-          {isNotifications ? (
-            <BellIconSolid className="w-6 h-6 text-gray-700 mb-1" />
-          ) : (
-            <BellIcon className="w-6 h-6 text-gray-400 mb-1" />
-          )}
+          <div className="relative">
+            {isNotifications ? (
+              <BellIconSolid className="w-6 h-6 text-gray-700 mb-1" />
+            ) : (
+              <BellIcon className="w-6 h-6 text-gray-400 mb-1" />
+            )}
+            {unreadCount > 0 && (
+              <motion.div
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+                className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full min-w-[18px] h-[18px] flex items-center justify-center px-1 text-[10px] font-bold shadow-lg border-2 border-white"
+              >
+                {unreadCount > 99 ? '99+' : unreadCount}
+              </motion.div>
+            )}
+          </div>
           <span
             className={`text-[10px] font-medium ${
               isNotifications ? 'text-gray-700' : 'text-gray-400'

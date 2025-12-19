@@ -65,13 +65,31 @@ export const RestaurantProvider: React.FC<RestaurantProviderProps> = ({ children
   } = useQuery<Restaurant[]>({
     queryKey: ['restaurants'],
     queryFn: async () => {
-      const response = await api.get<RestaurantsResponse>('/restaurants');
-      if (response.data.success) {
-        return response.data.data;
+      try {
+        const response = await api.get<RestaurantsResponse>('/restaurants');
+        if (response.data.success) {
+          return response.data.data;
+        }
+        throw new Error(response.data.message || 'Failed to fetch restaurants');
+      } catch (err: any) {
+        // Provide more detailed error messages
+        if (err.code === 'ECONNABORTED') {
+          throw new Error('Request timeout. Please check your connection.');
+        } else if (err.message === 'Network Error' || !err.response) {
+          throw new Error('Unable to connect to server. Please ensure the backend is running on http://localhost:3000');
+        } else if (err.response?.status === 401) {
+          throw new Error('Authentication required. Please log in again.');
+        } else if (err.response?.status === 404) {
+          throw new Error('Restaurants endpoint not found. Please check the API configuration.');
+        } else if (err.response?.status >= 500) {
+          throw new Error('Server error. Please try again later.');
+        }
+        throw new Error(err.response?.data?.message || err.message || 'Failed to fetch restaurants');
       }
-      throw new Error(response.data.message || 'Failed to fetch restaurants');
     },
     staleTime: 5 * 60 * 1000,
+    retry: 2,
+    retryDelay: 1000,
   });
 
   const createMutation = useMutation({

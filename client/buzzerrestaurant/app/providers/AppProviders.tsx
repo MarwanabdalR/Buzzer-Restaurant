@@ -7,6 +7,9 @@ import { ProfileProvider } from '../context/ProfileContext';
 import { RestaurantProvider } from '../context/RestaurantContext';
 import { CategoryProvider } from '../context/CategoryContext';
 import { ProductProvider } from '../context/ProductContext';
+import { CartProvider } from '../context/CartContext';
+import { OrderProvider } from '../context/OrderContext';
+import { IntlProvider } from './IntlProvider';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -24,17 +27,23 @@ interface AppProvidersProps {
 export const AppProviders: React.FC<AppProvidersProps> = ({ children }) => {
   return (
     <QueryClientProvider client={queryClient}>
-      <AuthProvider>
-        <ProfileProvider>
-          <RestaurantProvider>
-            <CategoryProvider>
-              <ProductProvider>
-                {children}
-              </ProductProvider>
-            </CategoryProvider>
-          </RestaurantProvider>
-        </ProfileProvider>
-      </AuthProvider>
+      <IntlProvider>
+        <AuthProvider>
+          <ProfileProvider>
+            <RestaurantProvider>
+              <CategoryProvider>
+                <ProductProvider>
+                  <OrderProvider>
+                    <CartProvider>
+                      {children}
+                    </CartProvider>
+                  </OrderProvider>
+                </ProductProvider>
+              </CategoryProvider>
+            </RestaurantProvider>
+          </ProfileProvider>
+        </AuthProvider>
+      </IntlProvider>
     </QueryClientProvider>
   );
 };
