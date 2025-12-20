@@ -365,11 +365,11 @@ This project is licensed under the ISC License.
 
 ## 👤 Author
 
-**Buzzer Restaurant Team**
+**Marwan Abdalrady**
 
 ---
 
 **Happy Coding! 🚀**
 
-For questions or issues, please open an issue on GitHub.
+For questions or issues, please send me at marwanabdalrady13@gmail.com.
 

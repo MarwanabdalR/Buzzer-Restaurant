@@ -5,13 +5,12 @@ import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { ImageWithLoader } from '../ui/ImageWithLoader';
 import { Product } from '../../types/product';
-import { Restaurant } from '../../types';
 import { StarRating } from '../ui/StarRating';
 import { calculateDiscount } from '../../lib/productUtils';
 
 interface ProductCardProps {
   product: Product;
-  restaurant?: Restaurant | null;
+  restaurant?: Product['restaurant'];
   index?: number;
 }
 

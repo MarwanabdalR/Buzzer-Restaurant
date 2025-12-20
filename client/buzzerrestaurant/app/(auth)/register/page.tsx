@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -39,7 +39,7 @@ type PhoneFormData = z.infer<typeof phoneSchema>;
 type OtpFormData = z.infer<typeof otpSchema>;
 type RegisterFormData = z.infer<typeof registerSchema>;
 
-export default function RegisterPage() {
+function RegisterPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { register } = useAuth();
@@ -276,5 +276,17 @@ export default function RegisterPage() {
         )}
       </AnimatePresence>
     </div>
+  );
+}
+
+export default function RegisterPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-gray-500">Loading...</div>
+      </div>
+    }>
+      <RegisterPageContent />
+    </Suspense>
   );
 }

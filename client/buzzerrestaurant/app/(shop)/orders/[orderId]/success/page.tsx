@@ -170,13 +170,8 @@ export default function OrderSuccessPage() {
                     <h2 className="text-2xl font-bold text-gray-900 mb-2">{featuredProduct.name}</h2>
                     <div className="flex items-center gap-3 mb-6">
                       <span className="text-3xl font-bold text-gray-900">
-                        EGP {featuredProduct.price}
+                        EGP {parseFloat(order.items[0]?.price || '0').toFixed(2)}
                       </span>
-                      {featuredProduct.originalPrice && (
-                        <span className="text-xl text-gray-400 line-through">
-                          EGP {featuredProduct.originalPrice}
-                        </span>
-                      )}
                     </div>
                     <motion.button
                       whileHover={{ scale: 1.02 }}

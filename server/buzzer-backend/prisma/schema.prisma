@@ -46,7 +46,7 @@ model Product {
   originalPrice Decimal?   @db.Decimal(10, 2)
   discountPercent Float?
   image        String?
-  images       String      @default("[]") @db.Text
+  images       String?     @db.Text
   rate         Float?
   isFeatured   Boolean     @default(false)
 
