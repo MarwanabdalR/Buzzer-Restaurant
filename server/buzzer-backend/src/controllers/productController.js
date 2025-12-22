@@ -28,28 +28,7 @@ export const createProduct = asyncHandler(async (req, res) => {
   }
 
   const imageUrl = req.file?.path || data.image || null;
-  if (req.file && !req.file.path) {
-    return res.status(400).json({ message: 'Image upload failed' });
-  }
-
-  let imagesArray = [];
-  if (data.images) {
-    if (typeof data.images === 'string') {
-      try {
-        imagesArray = JSON.parse(data.images);
-      } catch {
-        imagesArray = [];
-      }
-    } else if (Array.isArray(data.images)) {
-      imagesArray = data.images;
-    }
-  }
-  if (imageUrl && !imagesArray.includes(imageUrl)) {
-    imagesArray.unshift(imageUrl);
-  }
-  if (imagesArray.length === 0 && imageUrl) {
-    imagesArray = [imageUrl];
-  }
+  const imagesArray = imageUrl ? [imageUrl] : [];
 
   // Auto-calculate discountPercent if originalPrice and price are provided
   let discountPercent = data.discountPercent || null;
@@ -66,8 +45,8 @@ export const createProduct = asyncHandler(async (req, res) => {
       price: data.price,
       originalPrice: data.originalPrice || null,
       discountPercent: discountPercent,
-      image: imageUrl || imagesArray[0] || null,
-      images: JSON.stringify(imagesArray),
+      image: imageUrl || null,
+      images: imagesArray.length > 0 ? JSON.stringify(imagesArray) : null,
       rate: data.rate ?? null,
       isFeatured: data.isFeatured ?? false,
       categoryId,
@@ -182,36 +161,12 @@ export const updateProduct = asyncHandler(async (req, res) => {
     }
   }
 
+  // Frontend uploads directly to Cloudinary and sends the URL in data.image
+  // req.file will be undefined since no file is uploaded to the backend
   const imageUrl = req.file?.path || data.image || existing.image || null;
-  if (req.file && !req.file.path) {
-    return res.status(400).json({ message: 'Image upload failed' });
-  }
-
-  let imagesArray = [];
-  const existingImages = existing.images ? (typeof existing.images === 'string' ? JSON.parse(existing.images) : existing.images) : [];
   
-  if (data.images !== undefined) {
-    if (typeof data.images === 'string') {
-      try {
-        imagesArray = JSON.parse(data.images);
-      } catch {
-        imagesArray = existingImages;
-      }
-    } else if (Array.isArray(data.images)) {
-      imagesArray = data.images;
-    } else {
-      imagesArray = existingImages;
-    }
-  } else {
-    imagesArray = existingImages;
-  }
-
-  if (imageUrl && !imagesArray.includes(imageUrl)) {
-    imagesArray.unshift(imageUrl);
-  }
-  if (imagesArray.length === 0 && imageUrl) {
-    imagesArray = [imageUrl];
-  }
+  // Store as array for backward compatibility (single item array)
+  const imagesArray = imageUrl ? [imageUrl] : [];
 
   const updated = await prisma.product.update({
     where: { id },
@@ -221,8 +176,8 @@ export const updateProduct = asyncHandler(async (req, res) => {
       price: data.price ?? existing.price,
       originalPrice: data.originalPrice !== undefined ? data.originalPrice : existing.originalPrice,
       discountPercent: data.discountPercent !== undefined ? data.discountPercent : existing.discountPercent,
-      image: imageUrl || imagesArray[0] || existing.image,
-      images: JSON.stringify(imagesArray),
+      image: imageUrl || existing.image,
+      images: imagesArray.length > 0 ? JSON.stringify(imagesArray) : existing.images,
       rate: data.rate ?? existing.rate,
       isFeatured: data.isFeatured !== undefined ? data.isFeatured : existing.isFeatured,
       categoryId,

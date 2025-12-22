@@ -12,7 +12,6 @@ import { MobileHeader } from '../../components/layout/MobileHeader';
 import { Container } from '../../components/layout/Container';
 import { useCart } from '../../context/CartContext';
 import { StarRating } from '../../components/ui/StarRating';
-import { calculateDiscount } from '../../lib/productUtils';
 
 export default function CartPage() {
   const router = useRouter();

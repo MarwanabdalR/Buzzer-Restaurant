@@ -15,7 +15,6 @@ import { useCart } from '../../../context/CartContext';
 import { AddedToBasketModal } from '../../../components/ui/AddedToBasketModal';
 import { ReviewForm } from '../../../components/reviews/ReviewForm';
 import { ReviewCard } from '../../../components/reviews/ReviewCard';
-import { calculateDiscount } from '../../../lib/productUtils';
 import api from '../../../lib/axios';
 import { Product, Review } from '../../../types/product';
 import toast from 'react-hot-toast';
@@ -78,7 +77,7 @@ export default function ProductDetailPage() {
     );
   }
 
-  const discount = calculateDiscount(product.price, product.originalPrice);
+  const discount = product.discountPercent || null;
   const description = product.description || 'No description available.';
 
   const renderStars = (rating: number | null) => {

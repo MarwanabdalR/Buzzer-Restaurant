@@ -45,11 +45,14 @@ export const createOrderSchema = Joi.object({
 
   location: Joi.string()
     .trim()
+    .min(1)
     .max(500)
-    .optional()
-    .allow(null, '')
+    .required()
     .messages({
+      'string.empty': 'location is required',
+      'string.min': 'location must not be empty',
       'string.max': 'location must not exceed 500 characters',
+      'any.required': 'location is required',
     }),
 });
 

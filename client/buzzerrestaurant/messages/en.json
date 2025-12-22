@@ -123,6 +123,10 @@
   "Checkout": {
     "title": "Checkout",
     "pickupLocation": "Pickup Location",
+    "deliveryLocation": "Delivery Location",
+    "enterDeliveryLocation": "Enter your delivery address",
+    "deliveryLocationPlaceholder": "e.g., 123 Main Street, Apartment 4B, City",
+    "deliveryLocationRequired": "Please enter your delivery location",
     "paymentMethod": "Payment Method",
     "creditDebitCard": "Credit And Debit Card",
     "cashOnDelivery": "Cash On Delivery",

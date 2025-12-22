@@ -123,6 +123,10 @@
   "Checkout": {
     "title": "الدفع",
     "pickupLocation": "موقع الاستلام",
+    "deliveryLocation": "موقع التوصيل",
+    "enterDeliveryLocation": "أدخل عنوان التوصيل",
+    "deliveryLocationPlaceholder": "مثال: 123 الشارع الرئيسي، شقة 4ب، المدينة",
+    "deliveryLocationRequired": "يرجى إدخال موقع التوصيل",
     "paymentMethod": "طريقة الدفع",
     "creditDebitCard": "بطاقة الائتمان والخصم",
     "cashOnDelivery": "الدفع عند الاستلام",

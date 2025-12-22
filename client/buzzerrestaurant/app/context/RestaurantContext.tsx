@@ -29,6 +29,8 @@ interface RestaurantContextType {
     location: string;
     rating?: number;
     imageUrl?: string | null;
+    latitude?: number | null;
+    longitude?: number | null;
   }) => Promise<Restaurant>;
   updateRestaurant: (id: string, data: {
     name?: string;
@@ -36,6 +38,8 @@ interface RestaurantContextType {
     location?: string;
     rating?: number;
     imageUrl?: string | null;
+    latitude?: number | null;
+    longitude?: number | null;
   }) => Promise<Restaurant>;
   deleteRestaurant: (id: string) => Promise<void>;
 }
@@ -99,6 +103,8 @@ export const RestaurantProvider: React.FC<RestaurantProviderProps> = ({ children
       location: string;
       rating?: number;
       imageUrl?: string | null;
+      latitude?: number | null;
+      longitude?: number | null;
     }) => {
       const idToken = await getIdToken();
       if (!idToken) {
@@ -126,6 +132,8 @@ export const RestaurantProvider: React.FC<RestaurantProviderProps> = ({ children
       location?: string;
       rating?: number;
       imageUrl?: string | null;
+      latitude?: number | null;
+      longitude?: number | null;
     }}) => {
       const idToken = await getIdToken();
       if (!idToken) {
@@ -172,6 +180,8 @@ export const RestaurantProvider: React.FC<RestaurantProviderProps> = ({ children
     location: string;
     rating?: number;
     imageUrl?: string | null;
+    latitude?: number | null;
+    longitude?: number | null;
   }) => {
     return createMutation.mutateAsync(data);
   }, [createMutation]);
@@ -182,6 +192,8 @@ export const RestaurantProvider: React.FC<RestaurantProviderProps> = ({ children
     location?: string;
     rating?: number;
     imageUrl?: string | null;
+    latitude?: number | null;
+    longitude?: number | null;
   }) => {
     return updateMutation.mutateAsync({ id, data });
   }, [updateMutation]);

@@ -163,37 +163,66 @@ export const deleteRestaurant = asyncHandler(async (req, res) => {
   });
 });
 
-/**
- * Find nearby restaurants using Haversine formula
- * POST /api/restaurants/nearby
- * Body: { userLat, userLng, radiusKM? }
- */
 export const getNearbyRestaurants = asyncHandler(async (req, res) => {
   const { userLat, userLng, radiusKM = 10 } = req.body;
 
-  // Validate input
-  if (typeof userLat !== 'number' || typeof userLng !== 'number') {
-    return res.status(400).json({
-      success: false,
-      message: 'userLat and userLng are required and must be numbers',
-    });
+  // Check if coordinates are provided and valid
+  const hasValidCoordinates = 
+    typeof userLat === 'number' && 
+    typeof userLng === 'number' &&
+    !isNaN(userLat) && 
+    !isNaN(userLng) &&
+    userLat >= -90 && 
+    userLat <= 90 && 
+    userLng >= -180 && 
+    userLng <= 180;
+
+  // If coordinates are missing or invalid, return top-rated restaurants
+  if (!hasValidCoordinates) {
+    try {
+      const restaurants = await prisma.restaurant.findMany({
+        take: 20,
+        orderBy: {
+          rating: 'desc',
+        },
+        select: {
+          id: true,
+          name: true,
+          type: true,
+          location: true,
+          latitude: true,
+          longitude: true,
+          rating: true,
+          imageUrl: true,
+          createdAt: true,
+        },
+      });
+
+      // Format the results with distance: null
+      const formattedRestaurants = restaurants.map((restaurant) => ({
+        ...restaurant,
+        distance: null,
+        rating: restaurant.rating ? parseFloat(restaurant.rating) : 0,
+        latitude: restaurant.latitude ? parseFloat(restaurant.latitude) : null,
+        longitude: restaurant.longitude ? parseFloat(restaurant.longitude) : null,
+      }));
+
+      return res.status(200).json({
+        success: true,
+        message: 'Top-rated restaurants retrieved successfully',
+        data: formattedRestaurants,
+      });
+    } catch (error) {
+      console.error('Error fetching top-rated restaurants:', error);
+      return res.status(500).json({
+        success: false,
+        message: 'Error fetching restaurants',
+        error: error.message,
+      });
+    }
   }
 
-  if (isNaN(userLat) || isNaN(userLng)) {
-    return res.status(400).json({
-      success: false,
-      message: 'Invalid coordinates provided',
-    });
-  }
-
-  // Validate latitude and longitude ranges
-  if (userLat < -90 || userLat > 90 || userLng < -180 || userLng > 180) {
-    return res.status(400).json({
-      success: false,
-      message: 'Invalid latitude or longitude range',
-    });
-  }
-
+  // Validate radius if coordinates are valid
   const radius = parseFloat(radiusKM);
   if (isNaN(radius) || radius <= 0) {
     return res.status(400).json({
@@ -202,8 +231,7 @@ export const getNearbyRestaurants = asyncHandler(async (req, res) => {
     });
   }
 
-  // Haversine formula using raw SQL query
-  // Distance in kilometers
+  // Proceed with Haversine formula for nearby restaurants
   const query = `
     SELECT 
       r.*,

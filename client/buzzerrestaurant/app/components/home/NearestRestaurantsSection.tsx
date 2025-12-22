@@ -4,7 +4,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
-import { MagnifyingGlassIcon, MapPinIcon, StarIcon } from '@heroicons/react/24/solid';
+import { MagnifyingGlassIcon, MapPinIcon, StarIcon, XMarkIcon } from '@heroicons/react/24/solid';
 import { ImageWithLoader } from '../ui/ImageWithLoader';
 import { Restaurant } from '../../types';
 import { useGeoLocation } from '../../hooks/useGeoLocation';
@@ -21,11 +21,12 @@ export const NearestRestaurantsSection: React.FC<NearestRestaurantsSectionProps>
   loading,
 }) => {
   const router = useRouter();
-  const { location, isLoading: isGeoLoading, error: geoError, getCurrentLocation } = useGeoLocation();
+  const { location, isLoading: isGeoLoading, error: geoError, getCurrentLocation, stopLocationSearch } = useGeoLocation();
   const nearbyRestaurantsMutation = useNearbyRestaurants();
   const [nearestRestaurants, setNearestRestaurants] = useState<Restaurant[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [hasRequestedLocation, setHasRequestedLocation] = useState(false);
+  const [hasFetchedNearby, setHasFetchedNearby] = useState(false);
   const t = useTranslations('Home');
   const tCommon = useTranslations('Common');
   const tErrors = useTranslations('Errors');
@@ -40,9 +41,10 @@ export const NearestRestaurantsSection: React.FC<NearestRestaurantsSectionProps>
     }
   }, [restaurants, hasRequestedLocation, nearestRestaurants.length]);
 
-  // Fetch nearby restaurants when location is available
+  // Fetch nearby restaurants when location is available (only once per location request)
   useEffect(() => {
-    if (location && hasRequestedLocation) {
+    if (location && hasRequestedLocation && !hasFetchedNearby && !nearbyRestaurantsMutation.isPending) {
+      setHasFetchedNearby(true);
       nearbyRestaurantsMutation.mutate(
         {
           userLat: location.lat,
@@ -62,18 +64,20 @@ export const NearestRestaurantsSection: React.FC<NearestRestaurantsSectionProps>
         }
       );
     }
-  }, [location, hasRequestedLocation, nearbyRestaurantsMutation, restaurants]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [location?.lat, location?.lng, hasRequestedLocation, hasFetchedNearby]);
 
   // Handle find near me button click
   const handleFindNearMe = async () => {
     try {
+      setHasFetchedNearby(false); // Reset flag to allow new fetch
       setHasRequestedLocation(true);
       await getCurrentLocation();
+      // Location is now always resolved (either real GPS or default fallback)
+      // No need to show error toast as fallback is handled gracefully
     } catch (error: any) {
-      console.error('Error getting location:', error);
-      // Error is already set in the hook, just show a toast
-      const errorMsg = geoError || error?.message || 'Failed to get location. Please try again.';
-      toast.error(errorMsg, { duration: 5000 });
+      // This catch should rarely fire now since we resolve with default location
+      console.warn('Unexpected error getting location:', error);
     }
   };
 
@@ -104,7 +108,7 @@ export const NearestRestaurantsSection: React.FC<NearestRestaurantsSectionProps>
     // Search is handled in real-time via filteredRestaurants useMemo
   };
 
-  // Filter restaurants by location based on search query
+  // Filter restaurants by name, type, and location based on search query
   const filteredRestaurants = useMemo(() => {
     if (!searchQuery.trim()) {
       return nearestRestaurants;
@@ -112,9 +116,16 @@ export const NearestRestaurantsSection: React.FC<NearestRestaurantsSectionProps>
 
     const query = searchQuery.toLowerCase().trim();
     return nearestRestaurants.filter((restaurant) => {
-      // Search in location field (case-insensitive)
+      // Search in name, type, and location fields (case-insensitive)
+      const name = (restaurant.name || '').toLowerCase();
+      const type = (restaurant.type || '').toLowerCase();
       const location = (restaurant.location || '').toLowerCase();
-      return location.includes(query);
+      
+      return (
+        name.includes(query) ||
+        type.includes(query) ||
+        location.includes(query)
+      );
     });
   }, [nearestRestaurants, searchQuery]);
 
@@ -198,15 +209,25 @@ export const NearestRestaurantsSection: React.FC<NearestRestaurantsSectionProps>
                 </motion.div>
               )}
               
-              {/* Location button */}
-              <button
-                onClick={handleFindNearMe}
-                disabled={isGeoLoading || nearbyRestaurantsMutation.isPending}
-                className="absolute bottom-4 right-4 z-10 w-12 h-12 bg-[#FFB800] rounded-full flex items-center justify-center shadow-lg hover:bg-[#E5A700] transition-colors disabled:opacity-50"
-                aria-label="Find nearby restaurants"
-              >
-                <MapPinIcon className="w-6 h-6 text-black" />
-              </button>
+              {/* Location button / Stop button */}
+              {isGeoLoading ? (
+                <button
+                  onClick={stopLocationSearch}
+                  className="absolute bottom-4 right-4 z-10 w-12 h-12 bg-red-500 rounded-full flex items-center justify-center shadow-lg hover:bg-red-600 transition-colors"
+                  aria-label="Stop location search"
+                >
+                  <XMarkIcon className="w-6 h-6 text-white" />
+                </button>
+              ) : (
+                <button
+                  onClick={handleFindNearMe}
+                  disabled={nearbyRestaurantsMutation.isPending}
+                  className="absolute bottom-4 right-4 z-10 w-12 h-12 bg-[#FFB800] rounded-full flex items-center justify-center shadow-lg hover:bg-[#E5A700] transition-colors disabled:opacity-50"
+                  aria-label="Find nearby restaurants"
+                >
+                  <MapPinIcon className="w-6 h-6 text-black" />
+                </button>
+              )}
 
               {/* Map placeholder text */}
               {!location && !isGeoLoading && !nearbyRestaurantsMutation.isPending && (

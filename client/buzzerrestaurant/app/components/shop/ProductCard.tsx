@@ -6,8 +6,6 @@ import { motion } from 'framer-motion';
 import { ImageWithLoader } from '../ui/ImageWithLoader';
 import { Product } from '../../types/product';
 import { StarRating } from '../ui/StarRating';
-import { calculateDiscount } from '../../lib/productUtils';
-
 interface ProductCardProps {
   product: Product;
   restaurant?: Product['restaurant'];
@@ -16,7 +14,7 @@ interface ProductCardProps {
 
 export const ProductCard: React.FC<ProductCardProps> = ({ product, restaurant, index = 0 }) => {
   const router = useRouter();
-  const discount = calculateDiscount(product.price, product.originalPrice);
+  const discount = product.discountPercent || null;
 
   const handleClick = () => {
     router.push(`/products/${product.id}`);

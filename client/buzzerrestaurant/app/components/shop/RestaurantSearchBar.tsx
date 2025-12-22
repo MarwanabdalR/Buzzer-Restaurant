@@ -65,7 +65,7 @@ export const RestaurantSearchBar: React.FC<RestaurantSearchBarProps> = ({
     }
   };
 
-  const handleRestaurantClick = (restaurantId: number) => {
+  const handleRestaurantClick = (restaurantId: string | number) => {
     setShowRecommendations(false);
     setIsFocused(false);
     router.push(`/supplier/${restaurantId}/products`);
@@ -218,7 +218,7 @@ export const RestaurantSearchBar: React.FC<RestaurantSearchBarProps> = ({
                             <p className="text-sm font-bold text-[#4d0d0d]">
                               {parseFloat(product.price).toFixed(0)} EGP
                             </p>
-                            {product.rate > 0 && (
+                            {product.rate && product.rate > 0 && (
                               <p className="text-xs text-gray-500">⭐ {product.rate.toFixed(1)}</p>
                             )}
                           </div>

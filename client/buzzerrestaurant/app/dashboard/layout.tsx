@@ -111,6 +111,8 @@ function AdminModalManager() {
         location: data.location,
         rating: data.rating,
         imageUrl: data.imageUrl,
+        latitude: data.latitude ?? null,
+        longitude: data.longitude ?? null,
       };
     }
 

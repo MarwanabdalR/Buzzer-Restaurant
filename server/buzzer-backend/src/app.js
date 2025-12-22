@@ -30,8 +30,6 @@ app.use("/api/admin", adminRoutes);
 app.use("/api/reviews", reviewRoutes);
 app.use("/api/search", searchRoutes);
 
-// Basic error handler to return JSON instead of HTML
-// eslint-disable-next-line no-unused-vars
 app.use((err, _req, res, _next) => {
   console.error(err);
   const status = err.statusCode || err.status || 500;

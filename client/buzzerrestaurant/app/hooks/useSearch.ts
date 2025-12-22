@@ -15,10 +15,10 @@ export interface SearchProduct {
   name: string;
   description: string | null;
   price: string;
-  image: string;
+  image: string | null;
   images: string[];
   restaurant: {
-    id: number;
+    id: string;
     name: string;
     imageUrl: string | null;
   };
@@ -26,7 +26,7 @@ export interface SearchProduct {
     id: number;
     name: string;
   };
-  rate: number;
+  rate: number | null;
   isFeatured: boolean;
 }
 

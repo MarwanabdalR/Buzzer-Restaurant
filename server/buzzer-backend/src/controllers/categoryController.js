@@ -36,10 +36,6 @@ export const createCategory = asyncHandler(async (req, res) => {
 
   const imageUrl = req.file?.path || req.body.image || null;
 
-  if (req.file && !req.file.path) {
-    return res.status(400).json({ message: 'Image upload failed' });
-  }
-
   const created = await prisma.category.create({
     data: {
       name: req.body.name,
@@ -66,9 +62,6 @@ export const updateCategory = asyncHandler(async (req, res) => {
   }
 
   const imageUrl = req.file?.path || req.body.image || existing.image || null;
-  if (req.file && !req.file.path) {
-    return res.status(400).json({ message: 'Image upload failed' });
-  }
 
   const updated = await prisma.category.update({
     where: { id },

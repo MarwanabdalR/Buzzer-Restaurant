@@ -7,20 +7,17 @@ import { ProductGrid } from '../../components/shop/ProductGrid';
 import { LoadingSpinner } from '../../components/ui/LoadingSpinner';
 import { useProducts } from '../../hooks/useProducts';
 import { Product } from '../../types/product';
-import { calculateDiscount } from '../../lib/productUtils';
-
 export default function OffersPage() {
   const { data: allProducts = [], isLoading } = useProducts();
 
   const productsWithOffers = useMemo(() => {
     return allProducts
       .filter((product: Product) => {
-        const discount = calculateDiscount(product.price, product.originalPrice);
-        return discount !== null && discount > 0;
+        return product.discountPercent !== null && product.discountPercent !== undefined && product.discountPercent > 0;
       })
       .sort((a: Product, b: Product) => {
-        const discountA = calculateDiscount(a.price, a.originalPrice) || 0;
-        const discountB = calculateDiscount(b.price, b.originalPrice) || 0;
+        const discountA = a.discountPercent || 0;
+        const discountB = b.discountPercent || 0;
         return discountB - discountA;
       });
   }, [allProducts]);

@@ -15,13 +15,11 @@ import { getIdToken } from '../../lib/firebase';
 import toast from 'react-hot-toast';
 import { useTranslations } from 'next-intl';
 
-type PaymentMethod = 'creditcard' | 'cash' | 'applepay';
-
 export default function CheckoutPage() {
   const router = useRouter();
   const { items, getTotalPrice, clearCart } = useCart();
   const { refreshOrders } = useOrders();
-  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('creditcard');
+  const [deliveryLocation, setDeliveryLocation] = useState<string>('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const t = useTranslations('Checkout');
   const tCommon = useTranslations('Common');
@@ -62,6 +60,11 @@ export default function CheckoutPage() {
   };
 
   const handlePlaceOrder = async () => {
+    if (!deliveryLocation.trim()) {
+      toast.error(t('deliveryLocationRequired'));
+      return;
+    }
+
     setIsSubmitting(true);
     try {
       const idToken = await getIdToken();
@@ -76,7 +79,7 @@ export default function CheckoutPage() {
           productId: item.product.id,
           quantity: item.quantity,
         })),
-        location: restaurant?.location || null,
+        location: deliveryLocation.trim(),
       };
 
       const response = await api.post('/orders', orderData, {
@@ -108,6 +111,20 @@ export default function CheckoutPage() {
         <div className="md:hidden">
           <Container>
             <div className="py-4 space-y-4">
+            {/* Delivery Location Section */}
+            <div className="bg-white rounded-xl p-4">
+              <h2 className="text-lg font-bold text-gray-900 mb-4">{t('deliveryLocation')}</h2>
+              <textarea
+                value={deliveryLocation}
+                onChange={(e) => setDeliveryLocation(e.target.value)}
+                placeholder={t('deliveryLocationPlaceholder')}
+                rows={3}
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#FFB800] focus:border-[#FFB800] outline-none resize-none text-gray-900 placeholder-gray-400"
+                required
+                aria-required="true"
+              />
+            </div>
+
             {restaurant && (
               <div className="bg-white rounded-xl p-4">
                 <h2 className="text-lg font-bold text-gray-900 mb-4">{t('pickupLocation')}</h2>
@@ -141,40 +158,8 @@ export default function CheckoutPage() {
 
             <div className="bg-white rounded-xl p-4">
               <h2 className="text-lg font-bold text-gray-900 mb-4">{t('paymentMethod')}</h2>
-              <div className="space-y-3">
-                <label className="flex items-center gap-3 cursor-pointer">
-                  <input
-                    type="radio"
-                    name="payment"
-                    value="creditcard"
-                    checked={paymentMethod === 'creditcard'}
-                    onChange={(e) => setPaymentMethod(e.target.value as PaymentMethod)}
-                    className="w-5 h-5 text-[#4d0d0d] border-gray-300 focus:ring-[#4d0d0d]"
-                  />
-                  <span className="font-medium text-gray-900">{t('creditDebitCard')}</span>
-                </label>
-                <label className="flex items-center gap-3 cursor-pointer">
-                  <input
-                    type="radio"
-                    name="payment"
-                    value="cash"
-                    checked={paymentMethod === 'cash'}
-                    onChange={(e) => setPaymentMethod(e.target.value as PaymentMethod)}
-                    className="w-5 h-5 text-[#4d0d0d] border-gray-300 focus:ring-[#4d0d0d]"
-                  />
-                  <span className="font-medium text-gray-900">{t('cashOnDelivery')}</span>
-                </label>
-                <label className="flex items-center gap-3 cursor-pointer">
-                  <input
-                    type="radio"
-                    name="payment"
-                    value="applepay"
-                    checked={paymentMethod === 'applepay'}
-                    onChange={(e) => setPaymentMethod(e.target.value as PaymentMethod)}
-                    className="w-5 h-5 text-[#4d0d0d] border-gray-300 focus:ring-[#4d0d0d]"
-                  />
-                  <span className="font-medium text-gray-900">{t('applePay')}</span>
-                </label>
+              <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
+                <span className="font-medium text-gray-900">{t('cashOnDelivery')}</span>
               </div>
             </div>
 
@@ -315,6 +300,25 @@ export default function CheckoutPage() {
                 <div className="flex flex-col lg:flex-row gap-8">
                   {/* Left Section */}
                   <div className="flex-1 space-y-8">
+                    {/* Delivery Location Section */}
+                    <div className="space-y-4">
+                      <h3 className="text-2xl font-bold text-[#4d0d0d]">{t('deliveryLocation')}</h3>
+                      <div className="bg-white rounded-lg border border-gray-200 p-6 shadow-sm">
+                        <label className="block mb-2 text-gray-700 font-medium">
+                          {t('enterDeliveryLocation')}
+                        </label>
+                        <textarea
+                          value={deliveryLocation}
+                          onChange={(e) => setDeliveryLocation(e.target.value)}
+                          placeholder={t('deliveryLocationPlaceholder')}
+                          rows={4}
+                          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#FFB800] focus:border-[#FFB800] outline-none resize-none text-gray-900 placeholder-gray-400 text-base"
+                          required
+                          aria-required="true"
+                        />
+                      </div>
+                    </div>
+
                     {/* Pickup Location Section */}
                     {restaurant && (
                       <div className="space-y-4">
@@ -354,40 +358,8 @@ export default function CheckoutPage() {
                     <div className="space-y-4">
                       <h3 className="text-2xl font-bold text-[#4d0d0d]">{t('paymentMethod')}</h3>
                       <div className="bg-white rounded-lg border border-gray-200 p-6 shadow-sm">
-                        <div className="space-y-4">
-                          <label className="flex items-center gap-3 cursor-pointer p-3 rounded-lg hover:bg-gray-50">
-                            <input
-                              type="radio"
-                              name="payment"
-                              value="creditcard"
-                              checked={paymentMethod === 'creditcard'}
-                              onChange={(e) => setPaymentMethod(e.target.value as PaymentMethod)}
-                              className="w-5 h-5 text-[#4d0d0d] border-gray-300 focus:ring-[#4d0d0d]"
-                            />
-                            <span className="font-medium text-gray-900 text-lg">{t('creditDebitCard')}</span>
-                          </label>
-                          <label className="flex items-center gap-3 cursor-pointer p-3 rounded-lg hover:bg-gray-50">
-                            <input
-                              type="radio"
-                              name="payment"
-                              value="cash"
-                              checked={paymentMethod === 'cash'}
-                              onChange={(e) => setPaymentMethod(e.target.value as PaymentMethod)}
-                              className="w-5 h-5 text-[#4d0d0d] border-gray-300 focus:ring-[#4d0d0d]"
-                            />
-                            <span className="font-medium text-gray-900 text-lg">{t('cashOnDelivery')}</span>
-                          </label>
-                          <label className="flex items-center gap-3 cursor-pointer p-3 rounded-lg hover:bg-gray-50">
-                            <input
-                              type="radio"
-                              name="payment"
-                              value="applepay"
-                              checked={paymentMethod === 'applepay'}
-                              onChange={(e) => setPaymentMethod(e.target.value as PaymentMethod)}
-                              className="w-5 h-5 text-[#4d0d0d] border-gray-300 focus:ring-[#4d0d0d]"
-                            />
-                            <span className="font-medium text-gray-900 text-lg">{t('applePay')}</span>
-                          </label>
+                        <div className="flex items-center gap-3 p-4 bg-gray-50 rounded-lg">
+                          <span className="font-medium text-gray-900 text-lg">{t('cashOnDelivery')}</span>
                         </div>
                       </div>
                     </div>
