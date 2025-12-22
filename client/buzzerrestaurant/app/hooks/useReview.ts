@@ -12,6 +12,7 @@ interface CreateReviewData {
 export const useReview = () => {
   const queryClient = useQueryClient();
 
+  // create a review in the database
   const createReview = useMutation({
     mutationFn: async ({ productId, data }: { productId: number; data: CreateReviewData }) => {
       const idToken = await getIdToken();

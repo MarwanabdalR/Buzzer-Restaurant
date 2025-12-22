@@ -35,6 +35,7 @@ export interface SearchRecommendations {
   products: SearchProduct[];
 }
 
+// fetch search recommendations
 export const useSearchRecommendations = (query: string, enabled = true) => {
   return useQuery<SearchRecommendations>({
     queryKey: ['search', 'recommendations', query],

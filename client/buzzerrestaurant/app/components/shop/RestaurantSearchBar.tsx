@@ -123,7 +123,7 @@ export const RestaurantSearchBar: React.FC<RestaurantSearchBarProps> = ({
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -10 }}
               transition={{ duration: 0.2 }}
-              className="absolute top-full left-0 right-0 mt-2 bg-white rounded-2xl shadow-2xl max-h-[500px] overflow-y-auto"
+              className="absolute top-full left-0 right-0 mt-2 bg-white rounded-2xl shadow-2xl max-h-[500px] overflow-y-auto z-50"
             >
               {isLoading ? (
                 <div className="p-6 text-center text-gray-500">

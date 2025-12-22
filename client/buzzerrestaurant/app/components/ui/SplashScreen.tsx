@@ -1,28 +1,10 @@
 'use client';
 
-import React, { useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import React from 'react';
 import Image from 'next/image';
 import { motion } from 'framer-motion';
-import { useAuth } from '../../context/AuthContext';
 
 export const SplashScreen: React.FC = () => {
-  const router = useRouter();
-  const { user, loading } = useAuth();
-
-  useEffect(() => {
-    if (!loading) {
-      const timer = setTimeout(() => {
-        if (user) {
-          router.push('/');
-        } else {
-          router.push('/login');
-        }
-      }, 2000);
-
-      return () => clearTimeout(timer);
-    }
-  }, [loading, user, router]);
 
   return (
     <motion.div

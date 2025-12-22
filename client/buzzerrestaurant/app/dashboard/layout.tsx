@@ -12,25 +12,28 @@ import { Modal } from '../components/admin/Modal';
 import { RestaurantForm } from '../components/admin/RestaurantForm';
 import { CategoryForm } from '../components/admin/CategoryForm';
 import { ProductForm } from '../components/admin/ProductForm';
-import { useRestaurants } from '../context/RestaurantContext';
-import { useCategory } from '../context/CategoryContext';
-import { useProduct } from '../context/ProductContext';
+import { useCreateRestaurant, useUpdateRestaurant } from '../hooks/useRestaurant';
+import { useCreateCategory, useUpdateCategory } from '../hooks/useCategories';
+import { useCreateProduct, useUpdateProduct } from '../hooks/useProducts';
 import toast from 'react-hot-toast';
 
 function AdminModalManager() {
   const { modalState, closeModal } = useAdminModal();
-  const { createRestaurant, updateRestaurant } = useRestaurants();
-  const { createCategory, updateCategory } = useCategory();
-  const { createProduct, updateProduct } = useProduct();
+  const createRestaurantMutation = useCreateRestaurant();
+  const updateRestaurantMutation = useUpdateRestaurant();
+  const createCategoryMutation = useCreateCategory();
+  const updateCategoryMutation = useUpdateCategory();
+  const createProductMutation = useCreateProduct();
+  const updateProductMutation = useUpdateProduct();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleRestaurantSubmit = async (data: any) => {
     setIsSubmitting(true);
     try {
       if (modalState.action === 'create') {
-        await createRestaurant(data);
+        await createRestaurantMutation.mutateAsync(data);
       } else if (modalState.action === 'edit' && modalState.data) {
-        await updateRestaurant((modalState.data as any).id, data);
+        await updateRestaurantMutation.mutateAsync({ id: (modalState.data as any).id, data });
       }
       closeModal();
     } catch (error: any) {
@@ -44,11 +47,14 @@ function AdminModalManager() {
     setIsSubmitting(true);
     try {
       if (modalState.action === 'create') {
-        await createCategory({ name: data.name, image: data.imageUrl || null });
+        await createCategoryMutation.mutateAsync({ name: data.name, image: data.imageUrl || null });
       } else if (modalState.action === 'edit' && modalState.data) {
-        await updateCategory((modalState.data as any).id, {
-          name: data.name,
-          image: data.imageUrl || null,
+        await updateCategoryMutation.mutateAsync({
+          id: (modalState.data as any).id,
+          data: {
+            name: data.name,
+            image: data.imageUrl || null,
+          },
         });
       }
       closeModal();
@@ -67,17 +73,21 @@ function AdminModalManager() {
         description: data.description || null,
         price: parseFloat(data.price),
         originalPrice: data.originalPrice ? parseFloat(data.originalPrice) : null,
+        discountPercent: data.discountPercent || null,
         image: data.imageUrl || null,
         rate: data.rate || null,
         isFeatured: data.isFeatured || false,
-        categoryId: data.categoryId,
+        categoryId: typeof data.categoryId === 'string' ? parseInt(data.categoryId) : data.categoryId,
         restaurantId: data.restaurantId || null,
       };
 
       if (modalState.action === 'create') {
-        await createProduct(productData);
+        await createProductMutation.mutateAsync(productData);
       } else if (modalState.action === 'edit' && modalState.data) {
-        await updateProduct((modalState.data as any).id, productData);
+        await updateProductMutation.mutateAsync({
+          id: (modalState.data as any).id,
+          data: productData,
+        });
       }
       closeModal();
     } catch (error: any) {

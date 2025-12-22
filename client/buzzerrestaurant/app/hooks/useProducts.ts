@@ -16,6 +16,7 @@ export const useProducts = (categoryId?: number) => {
   });
 };
 
+// create a product in the database
 export const useCreateProduct = () => {
   const queryClient = useQueryClient();
 
@@ -24,9 +25,13 @@ export const useCreateProduct = () => {
       name: string;
       description?: string | null;
       price: string | number;
+      originalPrice?: string | number | null;
+      discountPercent?: number | null;
       image?: string | null;
       rate?: number | null;
+      isFeatured?: boolean;
       categoryId: number;
+      restaurantId?: string | null;
     }) => {
       const idToken = await getIdToken();
       if (!idToken) throw new Error('User not authenticated');
@@ -52,6 +57,7 @@ export const useCreateProduct = () => {
   });
 };
 
+// update a product in the database
 export const useUpdateProduct = () => {
   const queryClient = useQueryClient();
 
@@ -65,9 +71,13 @@ export const useUpdateProduct = () => {
         name?: string;
         description?: string | null;
         price?: string | number;
+        originalPrice?: string | number | null;
+        discountPercent?: number | null;
         image?: string | null;
         rate?: number | null;
+        isFeatured?: boolean;
         categoryId?: number;
+        restaurantId?: string | null;
       };
     }) => {
       const idToken = await getIdToken();
@@ -94,6 +104,7 @@ export const useUpdateProduct = () => {
   });
 };
 
+// delete a product in the database
 export const useDeleteProduct = () => {
   const queryClient = useQueryClient();
 

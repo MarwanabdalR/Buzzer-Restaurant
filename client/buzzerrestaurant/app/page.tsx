@@ -10,7 +10,7 @@ import { DesktopHeader } from './components/layout/DesktopHeader';
 import { DesktopFooter } from './components/layout/DesktopFooter';
 import { useAuth } from './context/AuthContext';
 import { BottomNav } from './components/layout/BottomNav';
-import { useRestaurants } from './context/RestaurantContext';
+import { useRestaurants } from './hooks/useRestaurant';
 import { RestaurantSearchBar } from './components/shop/RestaurantSearchBar';
 import { RestaurantList } from './components/shop/RestaurantList';
 import { HeroSection } from './components/home/HeroSection';
@@ -23,7 +23,7 @@ export default function Home() {
   const [showSplash, setShowSplash] = useState(true);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-  const { restaurants, loading: restaurantsLoading, error } = useRestaurants();
+  const { data: restaurants = [], isLoading: restaurantsLoading, error } = useRestaurants();
 
   useEffect(() => {
     if (!loading) {
@@ -50,8 +50,7 @@ export default function Home() {
   }, [sidebarOpen]);
 
   const handleSearch = () => {
-    // Filter restaurants based on search query
-    // This will be implemented when search functionality is needed
+    router.push(`/search?query=${searchQuery}`); //مش شغاله عايزه شغل كتير
   };
 
   const filteredRestaurants = restaurants.filter((restaurant) => {

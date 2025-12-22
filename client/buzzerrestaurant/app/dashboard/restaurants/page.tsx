@@ -1,25 +1,28 @@
 'use client';
 
 import React from 'react';
-import { useRestaurants } from '../../context/RestaurantContext';
+import { useRestaurants, useDeleteRestaurant } from '../../hooks/useRestaurant';
 import { useAdminModal } from '../../context/AdminModalContext';
 import { motion } from 'framer-motion';
 import { PlusIcon } from '@heroicons/react/24/outline';
-import toast from 'react-hot-toast';
 import { AdminTable, Column } from '../../components/admin/AdminTable';
 import { Restaurant } from '../../types';
 
 export default function RestaurantsPage() {
-  const { restaurants, loading, deleteRestaurant } = useRestaurants();
+  const { data: restaurants = [], isLoading: loading } = useRestaurants();
+  const deleteRestaurantMutation = useDeleteRestaurant();
+  
+  const deleteRestaurant = async (id: string) => {
+    await deleteRestaurantMutation.mutateAsync(id);
+  };
   const { openRestaurantModal } = useAdminModal();
 
   const handleDelete = async (restaurant: Restaurant) => {
     if (!confirm(`Are you sure you want to delete "${restaurant.name}"?`)) return;
     try {
       await deleteRestaurant(restaurant.id);
-      toast.success('Restaurant deleted successfully!');
     } catch (error: any) {
-      toast.error(error.message || 'Failed to delete restaurant');
+      console.error('Error deleting restaurant:', error);
     }
   };
 

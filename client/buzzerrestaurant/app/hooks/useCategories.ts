@@ -15,6 +15,7 @@ export const useCategories = () => {
   });
 };
 
+// create a category in the database
 export const useCreateCategory = () => {
   const queryClient = useQueryClient();
 
@@ -49,6 +50,7 @@ export const useCreateCategory = () => {
   });
 };
 
+// update a category in the database
 export const useUpdateCategory = () => {
   const queryClient = useQueryClient();
 
@@ -83,6 +85,7 @@ export const useUpdateCategory = () => {
   });
 };
 
+// delete a category in the database
 export const useDeleteCategory = () => {
   const queryClient = useQueryClient();
 

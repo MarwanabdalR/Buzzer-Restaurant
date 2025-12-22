@@ -4,7 +4,8 @@ import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { RestaurantCard } from './RestaurantCard';
 import { Restaurant } from '../../types';
-import { useRestaurants } from '../../context/RestaurantContext';
+import { useQueryClient } from '@tanstack/react-query';
+import { useRestaurants } from '../../hooks/useRestaurant';
 
 interface RestaurantListProps {
   restaurants: Restaurant[];
@@ -17,7 +18,8 @@ export const RestaurantList: React.FC<RestaurantListProps> = ({
   loading,
   error,
 }) => {
-  const { fetchRestaurants } = useRestaurants();
+  const queryClient = useQueryClient();
+  const { refetch: fetchRestaurants } = useRestaurants();
 
   if (loading) {
     return (

@@ -6,14 +6,14 @@ import { motion } from 'framer-motion';
 import { MagnifyingGlassIcon, MapPinIcon, StarIcon } from '@heroicons/react/24/solid';
 import { MobileHeader } from '../../components/layout/MobileHeader';
 import { BottomNav } from '../../components/layout/BottomNav';
-import { useRestaurants } from '../../context/RestaurantContext';
+import { useRestaurants } from '../../hooks/useRestaurant';
 import { Restaurant } from '../../types';
 import { ImageWithLoader } from '../../components/ui/ImageWithLoader';
 import { LoadingSpinner } from '../../components/ui/LoadingSpinner';
 
 export default function AllRestaurantsPage() {
   const router = useRouter();
-  const { restaurants, loading } = useRestaurants();
+  const { data: restaurants = [], isLoading: loading } = useRestaurants();
 
   // Search state
   const [searchQuery, setSearchQuery] = useState('');

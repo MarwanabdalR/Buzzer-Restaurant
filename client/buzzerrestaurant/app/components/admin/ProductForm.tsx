@@ -6,7 +6,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { ImageUpload } from '../ui/ImageUpload';
 import { useCategories } from '../../hooks/useCategories';
-import { useRestaurants } from '../../context/RestaurantContext';
+import { useRestaurants } from '../../hooks/useRestaurant';
 
 const productSchema = z.object({
   name: z.string().min(1, 'Name is required').max(200, 'Name must not exceed 200 characters'),
@@ -55,7 +55,7 @@ export const ProductForm: React.FC<ProductFormProps> = ({
   loading = false,
 }) => {
   const { data: categories = [] } = useCategories();
-  const { restaurants } = useRestaurants();
+  const { data: restaurants = [] } = useRestaurants();
   const {
     register,
     handleSubmit,

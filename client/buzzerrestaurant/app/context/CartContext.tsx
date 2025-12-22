@@ -38,6 +38,7 @@ interface CartProviderProps {
 export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
   const [items, setItems] = useState<CartItem[]>(() => {
     if (typeof window === 'undefined') return [];
+    // get the cart from the local storage
     try {
       const savedCart = localStorage.getItem('cart');
       if (savedCart) {
@@ -56,6 +57,7 @@ export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
     }
   }, [items]);
 
+  // add a product to the cart
   const addToCart = (product: Product, quantity: number) => {
     setItems((prevItems) => {
       const existingItem = prevItems.find((item) => item.product.id === product.id);
@@ -75,11 +77,13 @@ export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
     });
   };
 
+  // remove a product from the cart
   const removeFromCart = (productId: number) => {
     setItems((prevItems) => prevItems.filter((item) => item.product.id !== productId));
     toast.success('Removed from cart');
   };
 
+  // update the quantity of a product in the cart
   const updateQuantity = (productId: number, quantity: number) => {
     if (quantity <= 0) {
       removeFromCart(productId);
@@ -93,6 +97,7 @@ export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
     );
   };
 
+  // clear the cart
   const clearCart = () => {
     setItems([]);
     if (typeof window !== 'undefined') {

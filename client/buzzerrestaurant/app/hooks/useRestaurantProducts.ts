@@ -2,6 +2,7 @@ import { useQuery } from '@tanstack/react-query';
 import api from '../lib/axios';
 import { Product } from '../types/product';
 
+// fetch products by restaurant ID
 export const useRestaurantProducts = (restaurantId: string | undefined) => {
   return useQuery<Product[]>({
     queryKey: ['products', 'restaurant', restaurantId],

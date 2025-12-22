@@ -3,23 +3,26 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { PlusIcon } from '@heroicons/react/24/outline';
-import toast from 'react-hot-toast';
 import { AdminTable, Column } from '../../components/admin/AdminTable';
-import { useProduct } from '../../context/ProductContext';
+import { useProducts, useDeleteProduct } from '../../hooks/useProducts';
 import { useAdminModal } from '../../context/AdminModalContext';
 import { Product } from '../../types/product';
 
 export default function ProductsPage() {
-  const { products, isLoading, deleteProduct } = useProduct();
+  const { data: products = [], isLoading } = useProducts();
+  const deleteProductMutation = useDeleteProduct();
+  
+  const deleteProduct = async (id: number) => {
+    await deleteProductMutation.mutateAsync(id);
+  };
   const { openProductModal } = useAdminModal();
 
   const handleDelete = async (product: Product) => {
     if (!confirm(`Are you sure you want to delete "${product.name}"?`)) return;
     try {
       await deleteProduct(product.id);
-      toast.success('Product deleted successfully!');
     } catch (error: any) {
-      toast.error(error.message || 'Failed to delete product');
+      console.error('Error deleting product:', error);
     }
   };
 

@@ -6,18 +6,18 @@ import { motion } from 'framer-motion';
 import { MagnifyingGlassIcon, StarIcon } from '@heroicons/react/24/solid';
 import { MobileHeader } from '../../components/layout/MobileHeader';
 import { BottomNav } from '../../components/layout/BottomNav';
-import { useProduct } from '../../context/ProductContext';
-import { useCategory } from '../../context/CategoryContext';
-import { useRestaurants } from '../../context/RestaurantContext';
+import { useProducts } from '../../hooks/useProducts';
+import { useCategories } from '../../hooks/useCategories';
+import { useRestaurants } from '../../hooks/useRestaurant';
 import { Product } from '../../types/product';
 import { ProductCard } from '../../components/shop/ProductCard';
 import { LoadingSpinner } from '../../components/ui/LoadingSpinner';
 
 export default function AllProductsPage() {
   const router = useRouter();
-  const { products, isLoading } = useProduct();
-  const { categories } = useCategory();
-  const { restaurants } = useRestaurants();
+  const { data: products = [], isLoading } = useProducts();
+  const { data: categories = [] } = useCategories();
+  const { data: restaurants = [] } = useRestaurants();
 
   // Search state
   const [searchQuery, setSearchQuery] = useState('');

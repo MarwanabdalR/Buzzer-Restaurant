@@ -4,9 +4,6 @@ import React, { ReactNode } from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { AuthProvider } from '../context/AuthContext';
 import { ProfileProvider } from '../context/ProfileContext';
-import { RestaurantProvider } from '../context/RestaurantContext';
-import { CategoryProvider } from '../context/CategoryContext';
-import { ProductProvider } from '../context/ProductContext';
 import { CartProvider } from '../context/CartContext';
 import { OrderProvider } from '../context/OrderContext';
 import { IntlProvider } from './IntlProvider';
@@ -30,17 +27,11 @@ export const AppProviders: React.FC<AppProvidersProps> = ({ children }) => {
       <IntlProvider>
         <AuthProvider>
           <ProfileProvider>
-            <RestaurantProvider>
-              <CategoryProvider>
-                <ProductProvider>
-                  <OrderProvider>
-                    <CartProvider>
-                      {children}
-                    </CartProvider>
-                  </OrderProvider>
-                </ProductProvider>
-              </CategoryProvider>
-            </RestaurantProvider>
+            <OrderProvider>
+              <CartProvider>
+                {children}
+              </CartProvider>
+            </OrderProvider>
           </ProfileProvider>
         </AuthProvider>
       </IntlProvider>

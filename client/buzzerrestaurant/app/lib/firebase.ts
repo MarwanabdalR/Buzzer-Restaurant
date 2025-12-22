@@ -80,5 +80,3 @@ export const getIdToken = async (): Promise<string | null> => {
   }
 };
 
-export default app;
-

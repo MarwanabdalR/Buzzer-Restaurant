@@ -3,23 +3,26 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { PlusIcon } from '@heroicons/react/24/outline';
-import toast from 'react-hot-toast';
 import { AdminTable, Column } from '../../components/admin/AdminTable';
-import { useCategory } from '../../context/CategoryContext';
+import { useCategories, useDeleteCategory } from '../../hooks/useCategories';
 import { useAdminModal } from '../../context/AdminModalContext';
 import { Category } from '../../types/category';
 
 export default function CategoriesPage() {
-  const { categories, isLoading, deleteCategory } = useCategory();
+  const { data: categories = [], isLoading } = useCategories();
+  const deleteCategoryMutation = useDeleteCategory();
+  
+  const deleteCategory = async (id: number) => {
+    await deleteCategoryMutation.mutateAsync(id);
+  };
   const { openCategoryModal } = useAdminModal();
 
   const handleDelete = async (category: Category) => {
     if (!confirm(`Are you sure you want to delete "${category.name}"?`)) return;
     try {
       await deleteCategory(category.id);
-      toast.success('Category deleted successfully!');
     } catch (error: any) {
-      toast.error(error.message || 'Failed to delete category');
+      console.error('Error deleting category:', error);
     }
   };
 

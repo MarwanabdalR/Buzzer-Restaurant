@@ -27,7 +27,8 @@ export const createProduct = asyncHandler(async (req, res) => {
     return res.status(404).json({ message: 'Category not found' });
   }
 
-  const imageUrl = req.file?.path || data.image || null;
+  // Frontend uploads directly to Cloudinary and sends the URL in data.image
+  const imageUrl = data.image || null;
   const imagesArray = imageUrl ? [imageUrl] : [];
 
   // Auto-calculate discountPercent if originalPrice and price are provided
@@ -162,8 +163,7 @@ export const updateProduct = asyncHandler(async (req, res) => {
   }
 
   // Frontend uploads directly to Cloudinary and sends the URL in data.image
-  // req.file will be undefined since no file is uploaded to the backend
-  const imageUrl = req.file?.path || data.image || existing.image || null;
+  const imageUrl = data.image !== undefined ? (data.image || null) : existing.image;
   
   // Store as array for backward compatibility (single item array)
   const imagesArray = imageUrl ? [imageUrl] : [];
@@ -176,7 +176,7 @@ export const updateProduct = asyncHandler(async (req, res) => {
       price: data.price ?? existing.price,
       originalPrice: data.originalPrice !== undefined ? data.originalPrice : existing.originalPrice,
       discountPercent: data.discountPercent !== undefined ? data.discountPercent : existing.discountPercent,
-      image: imageUrl || existing.image,
+      image: imageUrl,
       images: imagesArray.length > 0 ? JSON.stringify(imagesArray) : existing.images,
       rate: data.rate ?? existing.rate,
       isFeatured: data.isFeatured !== undefined ? data.isFeatured : existing.isFeatured,

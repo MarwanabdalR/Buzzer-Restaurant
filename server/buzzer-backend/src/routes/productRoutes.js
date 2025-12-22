@@ -1,5 +1,4 @@
 import express from 'express';
-import upload from '../config/cloudinary.js';
 import {
   createProduct,
   getAllProducts,
@@ -14,8 +13,8 @@ const router = express.Router();
 
 router.get('/', getAllProducts);
 router.get('/:id', getProductById);
-router.post('/', authenticateAndLoadUser, requireAdmin, upload.single('image'), createProduct);
-router.put('/:id', authenticateAndLoadUser, requireAdmin, upload.single('image'), updateProduct);
+router.post('/', authenticateAndLoadUser, requireAdmin, createProduct);
+router.put('/:id', authenticateAndLoadUser, requireAdmin, updateProduct);
 router.delete('/:id', authenticateAndLoadUser, requireAdmin, deleteProduct);
 
 export default router;

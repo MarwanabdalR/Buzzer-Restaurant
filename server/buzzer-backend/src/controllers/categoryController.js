@@ -34,7 +34,8 @@ export const createCategory = asyncHandler(async (req, res) => {
     });
   }
 
-  const imageUrl = req.file?.path || req.body.image || null;
+  // Frontend uploads directly to Cloudinary and sends the URL in req.body.image
+  const imageUrl = req.body.image || null;
 
   const created = await prisma.category.create({
     data: {
@@ -61,7 +62,8 @@ export const updateCategory = asyncHandler(async (req, res) => {
     });
   }
 
-  const imageUrl = req.file?.path || req.body.image || existing.image || null;
+  // Frontend uploads directly to Cloudinary and sends the URL in req.body.image
+  const imageUrl = req.body.image !== undefined ? (req.body.image || null) : existing.image;
 
   const updated = await prisma.category.update({
     where: { id },
