@@ -90,6 +90,12 @@ export const PhoneInputStep: React.FC<PhoneInputStepProps> = ({
                 </p>
               )}
             </div>
+            <pre className="text-white/50 text-sm">
+            🔑 Demo Credentials:
+            👤 User Account: 01234567890
+            🛡️ Admin Account: 01090378387 (Has full dashboard access)
+            🔑 OTP for both: 123456
+            </pre>
 
             {/* Invisible reCAPTCHA container */}
             <div id="recaptcha-container" />
